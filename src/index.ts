@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { trimTrailingSlash } from "hono/trailing-slash";
+import type { Context } from "hono";
 import ociProvider from "./providers/oci";
 import type { ProviderFn, CostResult } from "./providers/types";
 
@@ -8,10 +8,9 @@ const providers: Record<string, ProviderFn> = {
 };
 
 const app = new Hono();
-app.use(trimTrailingSlash());
 
-app.get("/balance/:provider", async (c) => {
-  const name = c.req.param("provider");
+const singleProviderHandler = async (c: Context) => {
+  const name = c.req.param("provider") ?? "";
   const provider = providers[name];
 
   if (!provider) {
@@ -25,9 +24,9 @@ app.get("/balance/:provider", async (c) => {
     const message = err instanceof Error ? err.message : String(err);
     return c.json({ provider: name, error: message }, 500);
   }
-});
+};
 
-app.get("/balance", async (c) => {
+const allProvidersHandler = async (c: Context) => {
   const entries = Object.entries(providers);
   const results = await Promise.allSettled(entries.map(([, fn]) => fn()));
 
@@ -45,7 +44,12 @@ app.get("/balance", async (c) => {
   });
 
   return c.json(response, 200);
-});
+};
+
+app.get("/balance/:provider", singleProviderHandler);
+app.get("/balance/:provider/", singleProviderHandler);
+app.get("/balance", allProvidersHandler);
+app.get("/balance/", allProvidersHandler);
 
 export default {
   port: 3000,
