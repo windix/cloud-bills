@@ -27,8 +27,8 @@ const ociProvider: ProviderFn = async function (): Promise<CostResult> {
   const client = new usageapi.UsageapiClient({ authenticationDetailsProvider: auth });
 
   const now = new Date();
-  const timeUsageStarted = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
-  const timeUsageEnded = now;
+  const timeUsageStarted = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const timeUsageEnded = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
 
   const response = await client.requestSummarizedUsages({
     requestSummarizedUsagesDetails: {
