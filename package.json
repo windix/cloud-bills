@@ -1,0 +1,22 @@
+{
+  "name": "cloud-bills-impl",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@date-fns/utc": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "hono": "^4.12.14",
+    "oci-common": "^2.129.0",
+    "oci-usageapi": "^2.129.0"
+  }
+}
