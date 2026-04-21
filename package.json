@@ -1,8 +1,11 @@
 {
   "name": "cloud-bills-impl",
-  "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "start": "bun src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
