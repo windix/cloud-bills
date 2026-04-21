@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { trimTrailingSlash } from "hono/trailing-slash";
 import ociProvider from "./providers/oci";
 import type { ProviderFn, CostResult } from "./providers/types";
 
@@ -7,6 +8,7 @@ const providers: Record<string, ProviderFn> = {
 };
 
 const app = new Hono();
+app.use(trimTrailingSlash());
 
 app.get("/balance/:provider", async (c) => {
   const name = c.req.param("provider");
