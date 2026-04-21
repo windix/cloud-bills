@@ -13,6 +13,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "hono": "^4.12.14",
     "oci-common": "^2.129.0",
     "oci-usageapi": "^2.129.0"

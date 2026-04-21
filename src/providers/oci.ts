@@ -1,5 +1,6 @@
 import * as usageapi from "oci-usageapi";
 import * as common from "oci-common";
+import { startOfMonth, addDays } from "date-fns";
 import type { CostResult, ProviderFn } from "./types";
 
 const ociProvider: ProviderFn = async function (): Promise<CostResult> {
@@ -27,8 +28,11 @@ const ociProvider: ProviderFn = async function (): Promise<CostResult> {
   const client = new usageapi.UsageapiClient({ authenticationDetailsProvider: auth });
 
   const now = new Date();
-  const timeUsageStarted = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const timeUsageEnded = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  // date-fns gives us the right calendar date; Date.UTC ensures midnight UTC precision required by OCI
+  const firstOfMonth = startOfMonth(now);
+  const tomorrow = addDays(now, 1);
+  const timeUsageStarted = new Date(Date.UTC(firstOfMonth.getFullYear(), firstOfMonth.getMonth(), firstOfMonth.getDate()));
+  const timeUsageEnded = new Date(Date.UTC(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate()));
 
   const response = await client.requestSummarizedUsages({
     requestSummarizedUsagesDetails: {

@@ -58,7 +58,7 @@ OCI_USER_ID=ocid1.user.oc1..aaaaaaaa...
 
 These are generated together when you add an API key.
 
-1. Go to **Profile icon** → **User Settings** → **API Keys** → **Add API Key**
+1. Go to **Profile icon** → **User Settings** → **Tokens and keys** → **Add API Key**
 2. Choose **Generate API Key Pair**
 3. Click **Download Private Key** to save the `.pem` file somewhere safe
 4. Click **Add** — the confirmation dialog shows the **fingerprint** (format: `xx:xx:xx:xx:...`)
@@ -66,21 +66,7 @@ These are generated together when you add an API key.
    ```
    OCI_FINGERPRINT=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx
    ```
-
-6. For `OCI_PRIVATE_KEY`, the entire PEM file contents must be on a single line with `\n` replacing actual newlines. Run this command, substituting your actual path:
-   ```bash
-   awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /path/to/private-key.pem
-   ```
-   Paste the output as the value in `.env` (no surrounding quotes needed):
-   ```
-   OCI_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\nMIIEow...\n-----END RSA PRIVATE KEY-----\n
-   ```
-
----
-
-### `OCI_REGION`
-
-Your OCI region identifier. Find it in the Console URL or the region selector in the top bar.
+6. For 'OCI_REGION', set the value for `region=xxxxxxxxx`, see example Identifier below:
 
 Common values:
 
@@ -90,11 +76,17 @@ Common values:
 | US West (Phoenix) | `us-phoenix-1` |
 | EU Frankfurt | `eu-frankfurt-1` |
 | AP Sydney | `ap-sydney-1` |
+| AP Melbourne | `ap-melbourne-1` |
 | AP Tokyo | `ap-tokyo-1` |
 
-```
-OCI_REGION=ap-sydney-1
-```
+7. For `OCI_PRIVATE_KEY`, the entire PEM file contents must be on a single line with `\n` replacing actual newlines. Run this command, substituting your actual path:
+   ```bash
+   awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' /path/to/private-key.pem
+   ```
+   Paste the output as the value in `.env` (no surrounding quotes needed):
+   ```
+   OCI_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\nMIIEow...\n-----END RSA PRIVATE KEY-----\n
+   ```
 
 ---
 
