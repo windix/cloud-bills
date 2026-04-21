@@ -1,0 +1,28 @@
+# OCI account configuration
+# Copy this file to oci.yaml and fill in your credentials.
+# oci.yaml is gitignored — never commit real credentials.
+
+# Name of the account to use when no account is specified in the API path.
+default: prod
+
+prod:
+  tenancy_id: ocid1.tenancy.oc1..aaaaaaaa...
+  user_id: ocid1.user.oc1..aaaaaaaa...
+  fingerprint: "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+  # Paste your PEM private key using YAML block scalar — no \n escaping needed.
+  private_key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEA...
+    -----END RSA PRIVATE KEY-----
+  region: ap-sydney-1
+
+# Add more accounts by repeating the block with a different name.
+# dev:
+#   tenancy_id: ocid1.tenancy.oc1..bbbbbbbb...
+#   user_id: ocid1.user.oc1..bbbbbbbb...
+#   fingerprint: "yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy:yy"
+#   private_key: |
+#     -----BEGIN RSA PRIVATE KEY-----
+#     ...
+#     -----END RSA PRIVATE KEY-----
+#   region: us-ashburn-1
