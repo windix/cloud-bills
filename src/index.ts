@@ -30,7 +30,7 @@ app.get("/balance", async (c) => {
   const results = await Promise.allSettled(entries.map(([, fn]) => fn()));
 
   const response = results.map((result, i) => {
-    const name = entries[i][0];
+    const name = entries[i]?.[0] ?? "unknown";
     if (result.status === "fulfilled") {
       return result.value as CostResult;
     } else {

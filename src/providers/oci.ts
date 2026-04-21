@@ -13,11 +13,13 @@ const ociProvider: ProviderFn = async function (): Promise<CostResult> {
     throw new Error("OCI credentials not configured");
   }
 
+  const privateKeyPem = privateKey.replace(/\\n/g, "\n");
+
   const auth = new common.SimpleAuthenticationDetailsProvider(
     tenancyId,
     userId,
     fingerprint,
-    privateKey,
+    privateKeyPem,
     null,
     common.Region.fromRegionId(region)
   );
@@ -40,7 +42,8 @@ const ociProvider: ProviderFn = async function (): Promise<CostResult> {
   const items = response.usageAggregation?.items ?? [];
 
   const totalCost = items.reduce((sum, item) => sum + (item.computedAmount ?? 0), 0);
-  const currency = items[0]?.currency ?? "USD";
+  const firstItem = items.length > 0 ? items[0] : undefined;
+  const currency = firstItem?.currency ?? "USD";
 
   return {
     provider: "oci",
