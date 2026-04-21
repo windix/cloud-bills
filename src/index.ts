@@ -1,55 +1,58 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
-import ociProvider from "./providers/oci";
-import type { ProviderFn, CostResult } from "./providers/types";
+import { loadOciConfig } from "./providers/oci";
+import type { ProviderConfig, CostResult } from "./providers/types";
 
-const providers: Record<string, ProviderFn> = {
-  oci: ociProvider,
+const providerConfigs: Record<string, ProviderConfig> = {
+  oci: loadOciConfig(),
 };
 
 const app = new Hono();
 
-const singleProviderHandler = async (c: Context) => {
-  const name = c.req.param("provider") ?? "";
-  const provider = providers[name];
+app.get("/balance", async (c: Context) => {
+  const calls = Object.values(providerConfigs).flatMap((cfg) =>
+    Object.values(cfg.accounts).map((fn) => fn())
+  );
+  const results = await Promise.allSettled(calls);
 
-  if (!provider) {
-    return c.json({ error: `Provider '${name}' not found` }, 404);
+  let accountIdx = 0;
+  const response = Object.entries(providerConfigs).flatMap(([providerName, cfg]) =>
+    Object.keys(cfg.accounts).map((accountName) => {
+      const result = results[accountIdx++];
+      if (result!.status === "fulfilled") {
+        return result!.value as CostResult;
+      }
+      const message =
+        result!.reason instanceof Error ? result!.reason.message : String(result!.reason);
+      return { provider: providerName, account: accountName, error: message };
+    })
+  );
+
+  return c.json(response, 200);
+});
+
+app.get("/:provider/:account?", async (c: Context) => {
+  const providerName = c.req.param("provider") ?? "";
+  const cfg = providerConfigs[providerName];
+
+  if (!cfg) {
+    return c.json({ error: `Provider '${providerName}' not found` }, 404);
+  }
+
+  const accountName = c.req.param("account") ?? cfg.default;
+  const fn = cfg.accounts[accountName];
+
+  if (!fn) {
+    return c.json({ error: `Account '${accountName}' not found` }, 404);
   }
 
   try {
-    const result = await provider();
-    return c.json(result, 200);
+    return c.json(await fn(), 200);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return c.json({ provider: name, error: message }, 500);
+    return c.json({ provider: providerName, account: accountName, error: message }, 500);
   }
-};
-
-const allProvidersHandler = async (c: Context) => {
-  const entries = Object.entries(providers);
-  const results = await Promise.allSettled(entries.map(([, fn]) => fn()));
-
-  const response = results.map((result, i) => {
-    const name = entries[i]?.[0] ?? "unknown";
-    if (result.status === "fulfilled") {
-      return result.value as CostResult;
-    } else {
-      const message =
-        result.reason instanceof Error
-          ? result.reason.message
-          : String(result.reason);
-      return { provider: name, error: message };
-    }
-  });
-
-  return c.json(response, 200);
-};
-
-app.get("/balance/:provider", singleProviderHandler);
-app.get("/balance/:provider/", singleProviderHandler);
-app.get("/balance", allProvidersHandler);
-app.get("/balance/", allProvidersHandler);
+});
 
 export default {
   port: 3000,
