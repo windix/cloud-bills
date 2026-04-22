@@ -1,10 +1,12 @@
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { loadOciConfig } from "./providers/oci";
+import { loadAwsConfig } from "./providers/aws";
 import type { ProviderConfig, CostResult } from "./providers/types";
 
 const providerConfigs: Record<string, ProviderConfig> = {
   oci: loadOciConfig(),
+  aws: loadAwsConfig(),
 };
 
 const app = new Hono();

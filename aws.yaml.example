@@ -1,0 +1,15 @@
+# AWS account configuration
+# Copy this file to aws.yaml and fill in your credentials.
+# aws.yaml is gitignored — never commit real credentials.
+
+# Name of the account to use when no account is specified in the API path.
+default: prod
+
+prod:
+  access_key_id: AKIAIOSFODNN7EXAMPLE
+  secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# Add more accounts by repeating the block with a different name.
+# dev:
+#   access_key_id: AKIAI...
+#   secret_access_key: ...

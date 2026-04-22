@@ -60,7 +60,13 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
 }
 
 export function loadOciConfig(path = "oci.yaml"): ProviderConfig {
-  const raw = parse(readFileSync(path, "utf8")) as OciYaml;
+  let raw: OciYaml;
+  try {
+    raw = parse(readFileSync(path, "utf8")) as OciYaml;
+  } catch (err: any) {
+    if (err.code === "ENOENT") return { default: "", accounts: {} };
+    throw err;
+  }
   const accounts: Record<string, ProviderFn> = {};
 
   for (const [key, val] of Object.entries(raw)) {
