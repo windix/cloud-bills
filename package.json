@@ -13,6 +13,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@aws-sdk/client-cost-explorer": "^3.1034.0",
     "@date-fns/utc": "^2.1.1",
     "date-fns": "^4.1.0",
     "hono": "^4.12.14",
