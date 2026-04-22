@@ -59,7 +59,13 @@ export function createAwsProvider(name: string, config: AwsAccountConfig): Provi
 }
 
 export function loadAwsConfig(path = "aws.yaml"): ProviderConfig {
-  const raw = parse(readFileSync(path, "utf8")) as AwsYaml;
+  let raw: AwsYaml;
+  try {
+    raw = parse(readFileSync(path, "utf8")) as AwsYaml;
+  } catch (err: any) {
+    if (err.code === "ENOENT") return { default: "", accounts: {} };
+    throw err;
+  }
   const accounts: Record<string, ProviderFn> = {};
 
   for (const [key, val] of Object.entries(raw)) {

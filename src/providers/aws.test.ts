@@ -56,6 +56,12 @@ test("createAwsProvider returns 0 cost and USD when ResultsByTime is empty", asy
   expect(result.currency).toBe("USD");
 });
 
+test("loadAwsConfig returns empty config when file does not exist", () => {
+  const config = loadAwsConfig("/nonexistent/path/aws.yaml");
+  expect(config.default).toBe("");
+  expect(config.accounts).toEqual({});
+});
+
 test("loadAwsConfig parses YAML into ProviderConfig", () => {
   const tmpPath = "/tmp/aws-test.yaml";
   writeFileSync(
