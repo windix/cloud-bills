@@ -18,7 +18,7 @@ interface AwsYaml {
 export function createAwsProvider(name: string, config: AwsAccountConfig): ProviderFn {
   return async (): Promise<CostResult> => {
     const client = new CostExplorerClient({
-      region: "us-east-1",
+      region: "us-east-1", // Cost Explorer is only available in us-east-1
       credentials: {
         accessKeyId: config.access_key_id,
         secretAccessKey: config.secret_access_key,
@@ -27,7 +27,7 @@ export function createAwsProvider(name: string, config: AwsAccountConfig): Provi
 
     const now = new Date();
     const start = format(startOfMonth(now, { in: utc }), "yyyy-MM-dd");
-    const end = format(addDays(startOfDay(now, { in: utc }), 1), "yyyy-MM-dd");
+    const end = format(startOfDay(addDays(now, 1, { in: utc }), { in: utc }), "yyyy-MM-dd");
 
     const response = await client.send(
       new GetCostAndUsageCommand({
