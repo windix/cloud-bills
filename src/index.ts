@@ -1,59 +1,155 @@
-import { Hono } from "hono";
-import type { Context } from "hono";
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { swaggerUI } from "@hono/swagger-ui";
+import { z } from "@hono/zod-openapi";
 import { loadOciConfig } from "./providers/oci";
 import { loadAwsConfig } from "./providers/aws";
 import type { ProviderConfig, CostResult } from "./providers/types";
+import { CostResultSchema, ErrorSchema, BalanceItemSchema, type BalanceItem } from "./schemas";
 
 const providerConfigs: Record<string, ProviderConfig> = {
   oci: loadOciConfig(),
   aws: loadAwsConfig(),
 };
 
-const app = new Hono();
+export const app = new OpenAPIHono();
 
-app.get("/balance", async (c: Context) => {
-  const calls = Object.values(providerConfigs).flatMap((cfg) =>
-    Object.values(cfg.accounts).map((fn) => fn())
-  );
-  const results = await Promise.allSettled(calls);
+// spec + UI — registered first so /{provider} wildcard doesn't swallow these paths
 
-  let accountIdx = 0;
-  const response = Object.entries(providerConfigs).flatMap(([providerName, cfg]) =>
-    Object.keys(cfg.accounts).map((accountName) => {
-      const result = results[accountIdx++];
-      if (result!.status === "fulfilled") {
-        return result!.value as CostResult;
-      }
-      const message =
-        result!.reason instanceof Error ? result!.reason.message : String(result!.reason);
-      return { provider: providerName, account: accountName, error: message };
-    })
+app.doc("/openapi.json", {
+  openapi: "3.1.0",
+  info: {
+    title: "Cloud Bills API",
+    version: "1.0.0",
+    description: "Fetch cloud cost data across OCI and AWS accounts.",
+  },
+});
+
+app.get("/docs", swaggerUI({ url: "/openapi.json" }));
+
+// /balance
+
+const balanceRoute = createRoute({
+  method: "get",
+  path: "/balance",
+  summary: "All account balances",
+  description:
+    "Returns cost data for every configured account across all providers. " +
+    "If a provider fetch fails its entry contains an `error` field instead of cost fields.",
+  responses: {
+    200: {
+      content: { "application/json": { schema: z.array(BalanceItemSchema) } },
+      description: "Balance for every account (provider errors embedded inline)",
+    },
+  },
+});
+
+app.openapi(balanceRoute, async (c) => {
+  const ordered = Object.entries(providerConfigs).flatMap(([providerName, cfg]) =>
+    Object.keys(cfg.accounts).map((accountName) => ({
+      providerName,
+      accountName,
+      fn: cfg.accounts[accountName]!,
+    }))
   );
+  const results = await Promise.allSettled(ordered.map(({ fn }) => fn()));
+  const response: BalanceItem[] = ordered.map(({ providerName, accountName }, i) => {
+    const result = results[i]!;
+    if (result.status === "fulfilled") return result.value as CostResult;
+    const message = result.reason instanceof Error ? result.reason.message : String(result.reason);
+    return { provider: providerName, account: accountName, error: message };
+  });
 
   return c.json(response, 200);
 });
 
-app.get("/:provider/:account?", async (c: Context) => {
-  const providerName = c.req.param("provider") ?? "";
+// shared resolver
+
+async function resolveAccount(
+  providerName: string,
+  accountParam: string | undefined
+): Promise<{ ok: true; data: CostResult } | { ok: false; status: 404 | 500; error: string }> {
   const cfg = providerConfigs[providerName];
+  if (!cfg) return { ok: false, status: 404, error: `Provider '${providerName}' not found` };
 
-  if (!cfg) {
-    return c.json({ error: `Provider '${providerName}' not found` }, 404);
-  }
-
-  const accountName = c.req.param("account") ?? cfg.default;
+  const accountName = accountParam ?? cfg.default;
   const fn = cfg.accounts[accountName];
-
-  if (!fn) {
-    return c.json({ error: `Account '${accountName}' not found` }, 404);
-  }
+  if (!fn) return { ok: false, status: 404, error: `Account '${accountName}' not found` };
 
   try {
-    return c.json(await fn(), 200);
+    return { ok: true, data: await fn() };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return c.json({ provider: providerName, account: accountName, error: message }, 500);
+    return { ok: false, status: 500, error: message };
   }
+}
+
+// /{provider}
+
+const providerRoute = createRoute({
+  method: "get",
+  path: "/{provider}",
+  summary: "Default account balance for a provider",
+  request: {
+    params: z.object({
+      provider: z.string().openapi({ example: "aws", description: "Cloud provider name" }),
+    }),
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: CostResultSchema } },
+      description: "Account balance",
+    },
+    404: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Provider not found",
+    },
+    500: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Provider fetch error",
+    },
+  },
+});
+
+app.openapi(providerRoute, async (c) => {
+  const { provider } = c.req.valid("param");
+  const result = await resolveAccount(provider, undefined);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json(result.data, 200);
+});
+
+// /{provider}/{account}
+
+const providerAccountRoute = createRoute({
+  method: "get",
+  path: "/{provider}/{account}",
+  summary: "Specific account balance",
+  request: {
+    params: z.object({
+      provider: z.string().openapi({ example: "aws", description: "Cloud provider name" }),
+      account: z.string().openapi({ example: "production", description: "Account name" }),
+    }),
+  },
+  responses: {
+    200: {
+      content: { "application/json": { schema: CostResultSchema } },
+      description: "Account balance",
+    },
+    404: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Provider or account not found",
+    },
+    500: {
+      content: { "application/json": { schema: ErrorSchema } },
+      description: "Provider fetch error",
+    },
+  },
+});
+
+app.openapi(providerAccountRoute, async (c) => {
+  const { provider, account } = c.req.valid("param");
+  const result = await resolveAccount(provider, account);
+  if (!result.ok) return c.json({ error: result.error }, result.status);
+  return c.json(result.data, 200);
 });
 
 export default {
