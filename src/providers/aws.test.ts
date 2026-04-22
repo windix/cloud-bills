@@ -38,7 +38,7 @@ test("createAwsProvider sums costs across ResultsByTime periods", async () => {
   const result = await provider();
   expect(result.provider).toBe("aws");
   expect(result.account).toBe("prod");
-  expect(result.totalCost).toBe(19.80);
+  expect(result.totalCost).toBe(19.8);
   expect(result.currency).toBe("USD");
   expect(typeof result.lastUpdated).toBe("string");
 });
