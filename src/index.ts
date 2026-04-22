@@ -44,22 +44,20 @@ const balanceRoute = createRoute({
 });
 
 app.openapi(balanceRoute, async (c) => {
-  const calls = Object.values(providerConfigs).flatMap((cfg) =>
-    Object.values(cfg.accounts).map((fn) => fn())
+  const ordered = Object.entries(providerConfigs).flatMap(([providerName, cfg]) =>
+    Object.keys(cfg.accounts).map((accountName) => ({
+      providerName,
+      accountName,
+      fn: cfg.accounts[accountName]!,
+    }))
   );
-  const results = await Promise.allSettled(calls);
-
-  let accountIdx = 0;
-  const response: BalanceItem[] = Object.entries(providerConfigs).flatMap(
-    ([providerName, cfg]) =>
-      Object.keys(cfg.accounts).map((accountName) => {
-        const result = results[accountIdx++];
-        if (result!.status === "fulfilled") return result!.value as CostResult;
-        const message =
-          result!.reason instanceof Error ? result!.reason.message : String(result!.reason);
-        return { provider: providerName, account: accountName, error: message };
-      })
-  );
+  const results = await Promise.allSettled(ordered.map(({ fn }) => fn()));
+  const response: BalanceItem[] = ordered.map(({ providerName, accountName }, i) => {
+    const result = results[i]!;
+    if (result.status === "fulfilled") return result.value as CostResult;
+    const message = result.reason instanceof Error ? result.reason.message : String(result.reason);
+    return { provider: providerName, account: accountName, error: message };
+  });
 
   return c.json(response, 200);
 });
