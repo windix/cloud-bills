@@ -8,6 +8,7 @@ A unified REST API for querying current-month cloud spend across providers. Buil
 |----------|------------|-------------|
 | Oracle Cloud (OCI) | `oci.yaml` | [docs/oci-setup.md](docs/oci-setup.md) |
 | Amazon Web Services (AWS) | `aws.yaml` | [docs/aws-setup.md](docs/aws-setup.md) |
+| Microsoft Azure | `azure.yaml` | [docs/azure-setup.md](docs/azure-setup.md) |
 
 ## Prerequisites
 
@@ -28,8 +29,9 @@ bun install
 Copy and fill in the config file for each provider you want to use:
 
 ```bash
-cp oci.yaml.example oci.yaml   # then follow docs/oci-setup.md
-cp aws.yaml.example aws.yaml   # then follow docs/aws-setup.md
+cp oci.yaml.example oci.yaml      # then follow docs/oci-setup.md
+cp aws.yaml.example aws.yaml      # then follow docs/aws-setup.md
+cp azure.yaml.example azure.yaml  # then follow docs/azure-setup.md
 ```
 
 ## Running the server
@@ -52,6 +54,7 @@ Interactive API docs (Swagger UI) are available at **http://localhost:3000/docs*
 ```bash
 curl http://localhost:3000/oci
 curl http://localhost:3000/aws
+curl http://localhost:3000/azure
 ```
 
 ### Query a specific named account
@@ -59,6 +62,7 @@ curl http://localhost:3000/aws
 ```bash
 curl http://localhost:3000/oci/prod
 curl http://localhost:3000/aws/dev
+curl http://localhost:3000/azure/staging
 ```
 
 ### Query all providers and accounts
