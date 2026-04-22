@@ -3,12 +3,14 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { z } from "@hono/zod-openapi";
 import { loadOciConfig } from "./providers/oci";
 import { loadAwsConfig } from "./providers/aws";
+import { loadAzureConfig } from "./providers/azure";
 import type { ProviderConfig, CostResult } from "./providers/types";
 import { CostResultSchema, ErrorSchema, BalanceItemSchema, type BalanceItem } from "./schemas";
 
 const providerConfigs: Record<string, ProviderConfig> = {
   oci: loadOciConfig(),
   aws: loadAwsConfig(),
+  azure: loadAzureConfig(),
 };
 
 export const app = new OpenAPIHono();
@@ -20,7 +22,7 @@ app.doc("/openapi.json", {
   info: {
     title: "Cloud Bills API",
     version: "1.0.0",
-    description: "Fetch cloud cost data across OCI and AWS accounts.",
+    description: "Fetch cloud cost data across OCI, AWS, and Azure accounts.",
   },
 });
 
