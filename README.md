@@ -41,6 +41,10 @@ bun run start  # production
 
 The server listens on **http://localhost:3000**.
 
+## API documentation
+
+Interactive API docs (Swagger UI) are available at **http://localhost:3000/docs** while the server is running. The OpenAPI 3.1 spec is served at **http://localhost:3000/openapi.json**.
+
 ## API
 
 ### Query the default account for a provider
