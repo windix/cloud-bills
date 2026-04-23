@@ -13,12 +13,15 @@ To fetch cost data from Oracle Cloud Infrastructure (OCI), you should create a d
 
 It is best practice to manage permissions via groups.
 
-1.  Go to **Identity & Security** → **Groups** → **Create Group**.
+Go to **Identity & Security** → **Domains**.
+
+Under the domain marked as `current domain`, create user and group.
+
+1.  Go to tab **User management** → **Groups**, click on "Create" button.
 2.  Name it `cloud-bills-readers` and click **Create**.
-3.  Go to **Identity & Security** → **Users** → **Create User**.
-4.  Name it `cloud-bills-reader`.
-5.  After creation, click **Add User to Group** and select the `cloud-bills-readers` group.
-6.  Copy the **User OCID** from the user's detail page.
+3.  Go to tab **User management** → **Users**, click on "Create" button.
+4. FIll in First name / Last name / Username / Email for user creation, tick `cloud-bills-reader` group for Groups.
+5.  Copy the **User OCID** from the user's detail page.
     *   This will be your `user_id` in `oci.yaml`.
     *   The value starts with `ocid1.user.oc1..`
 
@@ -28,11 +31,18 @@ To query cost data, the user needs permission to read usage reports at the tenan
 
 1.  Go to **Identity & Security** → **Policies** → **Create Policy**.
 2.  Name it `CloudBillsReadUsage`.
-3.  Ensure the **Compartment** is set to the **root compartment** (your tenancy).
-4.  In the **Policy Builder**, click **Show manual editor** and paste:
+3.  Fill in **Description**.
+4.  Ensure the **Compartment** is set to the **root compartment** (your tenancy).
+5.  In the **Policy Builder**, click **Show manual editor** and paste this policy statement:
 
-```hcl
-Allow group cloud-bills-readers to read usage-report in tenancy
+```
+Allow group cloud-bills-readers to read usage-reports in tenancy
+```
+
+If your `current domain` is `OracleIdentityCloudService`, use this policy statement instead:
+
+```
+Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-reports in tenancy
 ```
 
 5.  Click **Create**.
