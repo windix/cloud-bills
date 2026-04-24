@@ -109,6 +109,21 @@ This step scopes data access to the billing dataset exclusively.
 5. The key file downloads automatically — store it somewhere safe.
 6. Move it into a `keys/` directory inside the repo root (e.g. `keys/main-billing-sa.json`). The `keys/` directory is gitignored — never commit key files.
 
+You may see the error "An organisation policy that blocks service accounts key creation has been enforced on your organisation." when you trying to create new key for Service Account.
+
+The reason is that `iam.disableServiceAccountKeyCreation` has been enforced.
+
+To disable it (allow key creation):
+
+1. Navigate to Policy: In the Google Cloud Console, go to IAM & Admin > Organization Policies.
+2. Locate Policy: Search for Disable service account key creation.
+3. Edit Policy: Click Edit Policy, select Override parent's policy, and set the policy enforcement to Off.
+4. Save: Click Set Policy.
+
+If you found out your account doesn't have permission, need to add 'Organisation Policy Administrator' role to your user:
+
+Go to IAM, change to orgnisation level, Assign 'Organisation Policy Administrator' (roles/orgpolicy.policyAdmin) role to your user and try above again.
+
 ---
 
 ## 6. Configure `gcp.yaml`
