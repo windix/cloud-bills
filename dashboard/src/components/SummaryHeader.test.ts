@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, test, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SummaryHeader from './SummaryHeader.vue'
 import type { ProviderSummary } from '../types'
