@@ -1,2 +1,3 @@
 [test]
 environment = "happy-dom"
+preload = ["./bun-vue-plugin.ts"]
