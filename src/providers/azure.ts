@@ -78,7 +78,7 @@ export function createAzureProvider(name: string, config: AzureAccountConfig): P
   };
 }
 
-export function loadAzureConfig(path = "azure.yaml"): ProviderConfig {
+export function loadAzureConfig(path = "config/azure.yaml"): ProviderConfig {
   let raw: AzureYaml;
   try {
     raw = parse(readFileSync(path, "utf8")) as AzureYaml;
