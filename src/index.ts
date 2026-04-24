@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import { z } from "@hono/zod-openapi";
+import { serveStatic } from "hono/bun";
 import { loadOciConfig } from "./providers/oci";
 import { loadAwsConfig } from "./providers/aws";
 import { loadAzureConfig } from "./providers/azure";
@@ -155,6 +156,11 @@ app.openapi(providerAccountRoute, async (c) => {
   if (!result.ok) return c.json({ error: result.error }, result.status);
   return c.json(result.data, 200);
 });
+
+// Serve built dashboard — must come after all API routes
+app.use("/*", serveStatic({ root: "./dashboard/dist" }));
+// SPA fallback: any unmatched path returns index.html for client-side routing
+app.use("/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: () => "index.html" }));
 
 export default {
   port: 3000,
