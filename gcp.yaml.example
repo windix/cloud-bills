@@ -1,0 +1,24 @@
+# GCP billing account configuration
+# Copy this file to gcp.yaml and fill in your values.
+# gcp.yaml is gitignored — never commit real credentials.
+
+# Name of the account to use when no account is specified in the API path.
+default: main
+
+main:
+  # Path to your service account JSON key file (relative to repo root).
+  key_file: ./keys/main-billing-sa.json
+  # GCP project that hosts the BigQuery billing export dataset.
+  project_id: my-gcp-project
+  # BigQuery dataset name where billing export lives.
+  dataset: billing_export
+  # Your GCP billing account ID (format: XXXXXX-XXXXXX-XXXXXX).
+  # Used to derive the BigQuery table name automatically.
+  billing_account_id: "AAAAAA-BBBBBB-CCCCCC"
+
+# Add more accounts by repeating the block with a different name.
+# secondary:
+#   key_file: ./keys/secondary-billing-sa.json
+#   project_id: another-gcp-project
+#   dataset: billing_export
+#   billing_account_id: "DDDDDD-EEEEEE-FFFFFF"
