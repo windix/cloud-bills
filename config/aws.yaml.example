@@ -1,6 +1,6 @@
 # AWS account configuration
-# Copy this file to aws.yaml and fill in your credentials.
-# aws.yaml is gitignored — never commit real credentials.
+# Copy this file to config/aws.yaml and fill in your credentials.
+# config/aws.yaml is gitignored — never commit real credentials.
 
 # Name of the account to use when no account is specified in the API path.
 default: prod

@@ -1,0 +1,10 @@
+# Azure account configuration
+# Copy this file to config/azure.yaml and fill in your credentials.
+# config/azure.yaml is gitignored — never commit real credentials.
+
+default: main
+main:
+  tenant_id: "your-tenant-id"
+  client_id: "your-client-id"
+  client_secret: "your-client-secret"
+  subscription_id: "your-subscription-id"
