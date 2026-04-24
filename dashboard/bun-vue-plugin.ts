@@ -1,6 +1,5 @@
 import { plugin } from 'bun'
 import { parse, compileScript, compileTemplate } from '@vue/compiler-sfc'
-import { readFileSync } from 'fs'
 import { GlobalWindow } from 'happy-dom'
 
 // Manually install happy-dom globals (bunfig environment="happy-dom" is broken in bun 1.3.12)
@@ -19,7 +18,7 @@ plugin({
   name: 'vue-sfc',
   setup(build) {
     build.onLoad({ filter: /\.vue$/ }, async (args) => {
-      const source = readFileSync(args.path, 'utf-8')
+      const source = await Bun.file(args.path).text()
       const { descriptor, errors } = parse(source, { filename: args.path })
 
       if (errors.length) {
