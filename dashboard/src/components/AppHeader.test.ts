@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, test, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import AppHeader from './AppHeader.vue'
 
