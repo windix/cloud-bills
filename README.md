@@ -87,6 +87,17 @@ curl http://localhost:3000/balance
 }
 ```
 
+## Dashboard
+
+A web UI for viewing cost data is available in the [`dashboard/`](dashboard/) directory. It fetches `GET /balance` and displays per-provider summary cards and a sorted account list with light/dark theme support.
+
+```bash
+cd dashboard && bun install && bun run dev
+# open http://localhost:5173
+```
+
+See [dashboard/README.md](dashboard/README.md) for full details.
+
 ## Adding more providers
 
 1. Create `src/providers/<name>.ts` exporting `createProvider` and `loadConfig` returning `ProviderConfig`
