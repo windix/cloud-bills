@@ -59,21 +59,21 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
           queryType: usageapi.models.RequestSummarizedUsagesDetails.QueryType.Credit,
           tenantId: config.tenancy_id,
         },
-      }),
+      }).catch(() => null),
     ]);
 
     const costItems = costResponse.usageAggregation?.items ?? [];
     const totalCost = costItems.reduce((sum, item) => sum + (item.computedAmount ?? 0), 0);
     const currency = costItems[0]?.currency ?? "USD";
 
-    const creditItems = (creditResponse.usageAggregation?.items ?? []).filter(
-      (item) => (item.computedAmount ?? 0) !== 0
+    const creditItems = (creditResponse?.usageAggregation?.items ?? []).filter(
+      (item) => (item.computedAmount ?? 0) !== 0 && item.timeUsageEnded != null
     );
 
     const credits: CreditEntry[] = creditItems.map((item) => ({
       amount: Math.round((item.computedAmount ?? 0) * 100) / 100,
       currency: item.currency ?? currency,
-      expiresAt: item.timeUsageEnded.toISOString(),
+      expiresAt: item.timeUsageEnded!.toISOString(),
     }));
 
     const totalCredits =
