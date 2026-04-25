@@ -130,6 +130,38 @@ Alternatively, use Docker Compose (uses the default `Dockerfile`):
 docker compose up
 ```
 
+## Benchmarking Bun vs Node/npm in Docker
+
+The repo includes a reproducible Docker benchmark harness that compares the two shipping container paths:
+
+- `Dockerfile`: Node.js runtime, `npm install`, TypeScript bundled to `dist/server.node.cjs`
+- `Dockerfile.bun`: Bun runtime, `bun install`, Bun executes `src/index.ts` directly
+
+Run the comparison with:
+
+```bash
+bun run bench:docker
+```
+
+That benchmark builds each image separately, starts one container at a time to avoid cross-container contention, and records:
+
+- Docker build wall time
+- final image size
+- cold start time to first successful `GET /openapi.json`
+- steady-state latency and throughput for `GET /openapi.json`
+- steady-state latency and throughput for `GET /`
+- sampled CPU and memory usage during each load test via `docker stats`
+
+You can tune request volume and concurrency, for example:
+
+```bash
+bun run bench:docker --requests 1000 --concurrency 64 --no-cache
+```
+
+Raw benchmark output is written to `benchmarks/results/*.json`. Run it at least 3 times and compare medians rather than relying on a single pass.
+
+See [docs/docker-benchmark.md](docs/docker-benchmark.md) for the full workflow and interpretation guidance.
+
 ## Adding more providers
 
 1. Create `src/providers/<name>.ts` exporting `createProvider` and `loadConfig` returning `ProviderConfig`
