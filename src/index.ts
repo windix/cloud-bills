@@ -1,5 +1,6 @@
 import { serveStatic } from "hono/bun";
 import { app } from "./app";
+export { app } from "./app";
 
 // Serve built dashboard — must come after all API routes
 app.use("/*", serveStatic({ root: "./dashboard/dist" }));
