@@ -98,9 +98,38 @@ cd dashboard && bun install && bun run dev
 
 See [dashboard/README.md](dashboard/README.md) for full details.
 
+## Docker
+
+Two Dockerfiles are provided:
+
+| File | Base image | Notes |
+|------|-----------|-------|
+| `Dockerfile` | `node:alpine` | Uses Node.js; compiles TypeScript to JS with `esbuild` at build time, runs with plain `node` |
+| `Dockerfile.bun` | `oven/bun` | Original Bun-based image |
+
+Build and run with the default (Node.js) image:
+
+```bash
+docker build -t cloud-bills .
+docker run -p 3000:3000 -v $(pwd)/config:/app/config cloud-bills
+```
+
+Or with the Bun image:
+
+```bash
+docker build -f Dockerfile.bun -t cloud-bills-bun .
+docker run -p 3000:3000 -v $(pwd)/config:/app/config cloud-bills-bun
+```
+
+Alternatively, use Docker Compose (uses the default `Dockerfile`):
+
+```bash
+docker compose up
+```
+
 ## Adding more providers
 
 1. Create `src/providers/<name>.ts` exporting `createProvider` and `loadConfig` returning `ProviderConfig`
-2. Register it in `src/index.ts` under `providerConfigs`
+2. Register it in `src/app.ts` under `providerConfigs`
 3. Create `<name>.yaml.example` and add `<name>.yaml` to `.gitignore`
 4. Add a setup guide at `docs/<name>-setup.md`

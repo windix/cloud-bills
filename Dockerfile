@@ -1,18 +1,26 @@
 # Stage 1: build the Vue dashboard
-FROM oven/bun AS dashboard-builder
+FROM node:alpine AS dashboard-builder
 WORKDIR /build
-COPY dashboard/package.json dashboard/bun.lock ./
-RUN bun install --frozen-lockfile
+COPY dashboard/package.json ./
+RUN npm install
 COPY dashboard/ .
-RUN bunx vite build
+RUN npm run build
 
-# Stage 2: runtime
-FROM oven/bun AS runtime
+# Stage 2: build — compile TS to JS
+FROM node:alpine AS builder
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+COPY package.json ./
+RUN npm install
 COPY src/ ./src/
 COPY tsconfig.json ./
+RUN npx esbuild src/server.node.ts --bundle --platform=node --packages=external --outfile=dist/server.node.js
+
+# Stage 3: runtime
+FROM node:alpine AS runtime
+WORKDIR /app
+COPY package.json ./
+RUN npm install --omit=dev
+COPY --from=builder /app/dist ./dist
 COPY --from=dashboard-builder /build/dist ./dashboard/dist
 EXPOSE 3000
-CMD ["bun", "src/index.ts"]
+CMD ["node", "dist/server.node.js"]
