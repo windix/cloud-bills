@@ -2,6 +2,8 @@ export interface CreditEntry {
   amount: number;
   currency: string;
   expiresAt: string; // ISO 8601
+  type?: string;
+  description?: string;
 }
 
 export interface CostResult {

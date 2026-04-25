@@ -74,6 +74,8 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
       amount: Math.round((item.computedAmount ?? 0) * 100) / 100,
       currency: item.currency ?? currency,
       expiresAt: item.timeUsageEnded!.toISOString(),
+      ...(item.skuPartNumber && { type: item.skuPartNumber }),
+      ...(item.skuName && { description: item.skuName }),
     }));
 
     const totalCredits =

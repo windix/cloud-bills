@@ -7,6 +7,11 @@ export const CreditEntrySchema = z
     expiresAt: z
       .string()
       .openapi({ example: "2026-05-22T00:00:00.000Z", description: "ISO 8601 datetime" }),
+    type: z.string().optional().openapi({ example: "B88888", description: "SKU part number" }),
+    description: z
+      .string()
+      .optional()
+      .openapi({ example: "Oracle Cloud Free Trial", description: "SKU friendly name" }),
   })
   .openapi("CreditEntry");
 
