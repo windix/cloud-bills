@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, test, expect } from 'vitest'
 import { computeProviderSummaries, sortItems } from './computations'
 import type { BalanceItem } from '../types'
 

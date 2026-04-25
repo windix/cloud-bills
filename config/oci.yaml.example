@@ -1,6 +1,6 @@
 # OCI account configuration
-# Copy this file to oci.yaml and fill in your credentials.
-# oci.yaml is gitignored — never commit real credentials.
+# Copy this file to config/oci.yaml and fill in your credentials.
+# config/oci.yaml is gitignored — never commit real credentials.
 
 # Name of the account to use when no account is specified in the API path.
 default: prod

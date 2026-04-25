@@ -58,7 +58,7 @@ export function createAwsProvider(name: string, config: AwsAccountConfig): Provi
   };
 }
 
-export function loadAwsConfig(path = "aws.yaml"): ProviderConfig {
+export function loadAwsConfig(path = "config/aws.yaml"): ProviderConfig {
   let raw: AwsYaml;
   try {
     raw = parse(readFileSync(path, "utf8")) as AwsYaml;

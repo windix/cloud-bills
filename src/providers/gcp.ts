@@ -52,7 +52,7 @@ export function createGcpProvider(name: string, config: GcpAccountConfig): Provi
   };
 }
 
-export function loadGcpConfig(path = "gcp.yaml"): ProviderConfig {
+export function loadGcpConfig(path = "config/gcp.yaml"): ProviderConfig {
   let raw: GcpYaml;
   try {
     raw = parse(readFileSync(path, "utf8")) as GcpYaml;

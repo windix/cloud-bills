@@ -8,8 +8,7 @@ test("GET /openapi.json returns OpenAPI 3.1 spec with expected paths", async () 
   expect(body.openapi).toBe("3.1.0");
   const paths = body.paths as Record<string, unknown>;
   expect(paths["/balance"]).toBeDefined();
-  expect(paths["/{provider}"]).toBeDefined();
-  expect(paths["/{provider}/{account}"]).toBeDefined();
+  expect(paths["/aws"]).toBeDefined();
 });
 
 test("GET /docs returns HTML with Swagger UI", async () => {

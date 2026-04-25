@@ -1,12 +1,15 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import { z } from "@hono/zod-openapi";
+import { serveStatic } from "hono/bun";
 import { loadOciConfig } from "./providers/oci";
 import { loadAwsConfig } from "./providers/aws";
 import { loadAzureConfig } from "./providers/azure";
 import { loadGcpConfig } from "./providers/gcp";
 import type { ProviderConfig, CostResult } from "./providers/types";
 import { CostResultSchema, ErrorSchema, BalanceItemSchema, type BalanceItem } from "./schemas";
+
+const VALID_PROVIDERS = ["aws", "gcp", "azure", "oci"] as const;
 
 const providerConfigs: Record<string, ProviderConfig> = {
   oci: loadOciConfig(),
@@ -87,74 +90,76 @@ async function resolveAccount(
   }
 }
 
-// /{provider}
+// Register routes only for valid providers
+for (const provider of VALID_PROVIDERS) {
+  // /{provider}
+  const providerRoute = createRoute({
+    method: "get",
+    path: `/${provider}`,
+    summary: `Default account balance for ${provider}`,
+    request: {
+      params: z.object({}),
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: CostResultSchema } },
+        description: "Account balance",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorSchema } },
+        description: "Account not found",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorSchema } },
+        description: "Provider fetch error",
+      },
+    },
+  });
 
-const providerRoute = createRoute({
-  method: "get",
-  path: "/{provider}",
-  summary: "Default account balance for a provider",
-  request: {
-    params: z.object({
-      provider: z.string().openapi({ example: "aws", description: "Cloud provider name" }),
-    }),
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: CostResultSchema } },
-      description: "Account balance",
-    },
-    404: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Provider not found",
-    },
-    500: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Provider fetch error",
-    },
-  },
-});
+  app.openapi(providerRoute, async (c) => {
+    const result = await resolveAccount(provider, undefined);
+    if (!result.ok) return c.json({ error: result.error }, result.status);
+    return c.json(result.data, 200);
+  });
 
-app.openapi(providerRoute, async (c) => {
-  const { provider } = c.req.valid("param");
-  const result = await resolveAccount(provider, undefined);
-  if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json(result.data, 200);
-});
-
-// /{provider}/{account}
-
-const providerAccountRoute = createRoute({
-  method: "get",
-  path: "/{provider}/{account}",
-  summary: "Specific account balance",
-  request: {
-    params: z.object({
-      provider: z.string().openapi({ example: "aws", description: "Cloud provider name" }),
-      account: z.string().openapi({ example: "production", description: "Account name" }),
-    }),
-  },
-  responses: {
-    200: {
-      content: { "application/json": { schema: CostResultSchema } },
-      description: "Account balance",
+  // /{provider}/{account}
+  const providerAccountRoute = createRoute({
+    method: "get",
+    path: `/${provider}/{account}`,
+    summary: `Specific account balance for ${provider}`,
+    request: {
+      params: z.object({
+        account: z.string().openapi({ example: "production", description: "Account name" }),
+      }),
     },
-    404: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Provider or account not found",
+    responses: {
+      200: {
+        content: { "application/json": { schema: CostResultSchema } },
+        description: "Account balance",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorSchema } },
+        description: "Account not found",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorSchema } },
+        description: "Provider fetch error",
+      },
     },
-    500: {
-      content: { "application/json": { schema: ErrorSchema } },
-      description: "Provider fetch error",
-    },
-  },
-});
+  });
 
-app.openapi(providerAccountRoute, async (c) => {
-  const { provider, account } = c.req.valid("param");
-  const result = await resolveAccount(provider, account);
-  if (!result.ok) return c.json({ error: result.error }, result.status);
-  return c.json(result.data, 200);
-});
+  app.openapi(providerAccountRoute, async (c) => {
+    const { account } = c.req.valid("param");
+    const result = await resolveAccount(provider, account);
+    if (!result.ok) return c.json({ error: result.error }, result.status);
+    return c.json(result.data, 200);
+  });
+}
+
+// Serve built dashboard — must come after all API routes
+app.use("/*", serveStatic({ root: "./dashboard/dist" }));
+// SPA fallback: any unmatched path returns index.html for client-side routing
+app.use("/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: () => "index.html" }));
 
 export default {
   port: 3000,

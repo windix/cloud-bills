@@ -59,7 +59,7 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
   };
 }
 
-export function loadOciConfig(path = "oci.yaml"): ProviderConfig {
+export function loadOciConfig(path = "config/oci.yaml"): ProviderConfig {
   let raw: OciYaml;
   try {
     raw = parse(readFileSync(path, "utf8")) as OciYaml;
