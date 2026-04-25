@@ -20,7 +20,10 @@ export const CostResultSchema = z
       .string()
       .openapi({ example: "2026-04-22T00:00:00Z", description: "ISO 8601 datetime" }),
     totalCredits: z.number().optional().openapi({ example: 400.0 }),
-    credits: z.array(CreditEntrySchema).optional(),
+    credits: z
+      .array(CreditEntrySchema)
+      .optional()
+      .openapi({ description: "Individual credit entries; omitted when no credits are available" }),
   })
   .openapi("CostResult");
 
