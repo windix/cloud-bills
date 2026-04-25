@@ -5,6 +5,4 @@ dist/
 .env.local
 .DS_Store
 config/*.yaml
-config/keys/*
-!config/keys/.gitkeep
 benchmarks/results/*.json
