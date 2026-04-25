@@ -62,6 +62,16 @@ test("createGcpProvider returns 0 cost and USD when rows are empty", async () =>
   expect(result.currency).toBe("USD");
 });
 
+test("createGcpProvider uses key_json and derives project_id from it", async () => {
+  const provider = createGcpProvider("main", {
+    key_json: JSON.stringify({ project_id: "derived-project", type: "service_account" }),
+    dataset: "billing_export",
+    billing_account_id: "AAAAAA-BBBBBB-CCCCCC",
+  });
+  const result = await provider();
+  expect(result.totalCost).toBe(12.5);
+});
+
 test("createGcpProvider propagates BigQuery errors", async () => {
   mockQuery.mockImplementationOnce(() =>
     Promise.reject(new Error("BigQuery error"))

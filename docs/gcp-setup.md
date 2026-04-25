@@ -129,7 +129,9 @@ Go to IAM, change to orgnisation level, Assign 'Organisation Policy Administrato
 ## 6. Configure `gcp.yaml`
 
 1. Copy `gcp.yaml.example` to `gcp.yaml`.
-2. Fill in the values:
+2. Fill in the values using **one of two approaches**:
+
+**Option A — key file path** (key JSON stored on disk):
 
 ```yaml
 default: main
@@ -137,6 +139,30 @@ default: main
 main:
   key_file: ./keys/main-billing-sa.json        # path from repo root to the JSON key
   project_id: my-gcp-project                   # project hosting the BigQuery dataset
+  dataset: billing_export                       # dataset ID from Step 1
+  billing_account_id: "AAAAAA-BBBBBB-CCCCCC"   # billing account ID from Step 3
+```
+
+**Option B — embedded key JSON** (no file on disk needed; `project_id` is derived from the key):
+
+```yaml
+default: main
+
+main:
+  key_json: |
+    {
+      "type": "service_account",
+      "project_id": "my-gcp-project",
+      "private_key_id": "...",
+      "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+      "client_email": "billing-reader@my-gcp-project.iam.gserviceaccount.com",
+      "client_id": "...",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "...",
+      "universe_domain": "googleapis.com"
+    }
   dataset: billing_export                       # dataset ID from Step 1
   billing_account_id: "AAAAAA-BBBBBB-CCCCCC"   # billing account ID from Step 3
 ```
@@ -174,5 +200,5 @@ Expected response:
 | `Not found: Table ... gcp_billing_export_v1_...` | Export not yet populated or wrong billing account ID | Wait 24–48h after enabling export; double-check `billing_account_id` |
 | `Permission denied on dataset` | SA missing `BigQuery Data Viewer` on the dataset | Repeat Step 4c |
 | `Permission denied on project` | SA missing `BigQuery Job User` | Repeat Step 4b |
-| `Could not load the key file` | Wrong `key_file` path | Verify path is relative to repo root |
+| `Could not load the key file` | Wrong `key_file` path | Verify path is relative to repo root; or switch to `key_json` to embed credentials directly |
 | `Dataset not found` | Wrong `project_id` or `dataset` | Check values match BigQuery console |

@@ -4,8 +4,9 @@ import { readFileSync } from "fs";
 import type { CostResult, ProviderFn, ProviderConfig } from "./types";
 
 export interface GcpAccountConfig {
-  key_file: string;
-  project_id: string;
+  key_file?: string;
+  key_json?: string;
+  project_id?: string;
   dataset: string;
   billing_account_id: string;
 }
@@ -17,9 +18,11 @@ interface GcpYaml {
 
 export function createGcpProvider(name: string, config: GcpAccountConfig): ProviderFn {
   return async (): Promise<CostResult> => {
+    const credentials = config.key_json ? JSON.parse(config.key_json) : undefined;
+    const projectId = config.project_id ?? credentials?.project_id;
     const client = new BigQuery({
-      projectId: config.project_id,
-      keyFilename: config.key_file,
+      projectId,
+      ...(credentials ? { credentials } : { keyFilename: config.key_file }),
     });
 
     const tableSuffix = config.billing_account_id.replace(/-/g, "_");
