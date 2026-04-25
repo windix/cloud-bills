@@ -39,8 +39,9 @@ cp gcp.yaml.example gcp.yaml      # then follow docs/gcp-setup.md
 ## Running the server
 
 ```bash
-bun run dev    # development with hot reload
-bun run start  # production
+bun run dev      # development with hot reload
+bun run start    # production
+bun run dev:all  # start both development server and dashboard together
 ```
 
 The server listens on **http://localhost:3000**.
@@ -95,6 +96,8 @@ A web UI for viewing cost data is available in the [`dashboard/`](dashboard/) di
 cd dashboard && bun install && bun run dev
 # open http://localhost:5173
 ```
+
+Or use `bun run dev:all` from the project root to start both the server and dashboard at once.
 
 See [dashboard/README.md](dashboard/README.md) for full details.
 
