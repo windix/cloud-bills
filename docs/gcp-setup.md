@@ -129,21 +129,7 @@ Go to IAM, change to orgnisation level, Assign 'Organisation Policy Administrato
 ## 6. Configure `gcp.yaml`
 
 1. Copy `gcp.yaml.example` to `gcp.yaml`.
-2. Fill in the values using **one of two approaches**:
-
-**Option A — key file path** (key JSON stored on disk):
-
-```yaml
-default: main
-
-main:
-  key_file: ./keys/main-billing-sa.json        # path from repo root to the JSON key
-  project_id: my-gcp-project                   # project hosting the BigQuery dataset
-  dataset: billing_export                       # dataset ID from Step 1
-  billing_account_id: "AAAAAA-BBBBBB-CCCCCC"   # billing account ID from Step 3
-```
-
-**Option B — embedded key JSON** (no file on disk needed; `project_id` is derived from the key):
+2. Fill in the values. `project_id` is derived from the key JSON automatically:
 
 ```yaml
 default: main
@@ -200,5 +186,5 @@ Expected response:
 | `Not found: Table ... gcp_billing_export_v1_...` | Export not yet populated or wrong billing account ID | Wait 24–48h after enabling export; double-check `billing_account_id` |
 | `Permission denied on dataset` | SA missing `BigQuery Data Viewer` on the dataset | Repeat Step 4c |
 | `Permission denied on project` | SA missing `BigQuery Job User` | Repeat Step 4b |
-| `Could not load the key file` | Wrong `key_file` path | Verify path is relative to repo root; or switch to `key_json` to embed credentials directly |
+| `SyntaxError: Unexpected token` | Malformed `key_json` | Ensure the value is valid JSON; copy directly from the downloaded key file |
 | `Dataset not found` | Wrong `project_id` or `dataset` | Check values match BigQuery console |
