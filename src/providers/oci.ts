@@ -1,10 +1,10 @@
 import * as usageapi from "oci-usageapi";
 import * as common from "oci-common";
-import { startOfMonth, addDays, startOfDay } from "date-fns";
+import { startOfMonth, addDays, startOfDay, subYears, addYears } from "date-fns";
 import { utc } from "@date-fns/utc";
 import { parse } from "yaml";
 import { readFileSync } from "fs";
-import type { CostResult, ProviderFn, ProviderConfig } from "./types";
+import type { CostResult, CreditEntry, ProviderFn, ProviderConfig } from "./types";
 
 export interface OciAccountConfig {
   tenancy_id: string;
@@ -33,21 +33,53 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
     const client = new usageapi.UsageapiClient({ authenticationDetailsProvider: auth });
 
     const now = new Date();
-    const timeUsageStarted = startOfMonth(now, { in: utc });
-    const timeUsageEnded = startOfDay(addDays(now, 1, { in: utc }), { in: utc });
 
-    const response = await client.requestSummarizedUsages({
-      requestSummarizedUsagesDetails: {
-        timeUsageStarted,
-        timeUsageEnded,
-        granularity: usageapi.models.RequestSummarizedUsagesDetails.Granularity.Monthly,
-        tenantId: config.tenancy_id,
-      },
-    });
+    // Cost query: current month to date
+    const costStart = startOfMonth(now, { in: utc });
+    const costEnd = startOfDay(addDays(now, 1, { in: utc }), { in: utc });
 
-    const items = response.usageAggregation?.items ?? [];
-    const totalCost = items.reduce((sum, item) => sum + (item.computedAmount ?? 0), 0);
-    const currency = items[0]?.currency ?? "USD";
+    // Credit query: wide window to capture all active credits
+    const creditStart = subYears(now, 2);
+    const creditEnd = addYears(now, 1);
+
+    const [costResponse, creditResponse] = await Promise.all([
+      client.requestSummarizedUsages({
+        requestSummarizedUsagesDetails: {
+          timeUsageStarted: costStart,
+          timeUsageEnded: costEnd,
+          granularity: usageapi.models.RequestSummarizedUsagesDetails.Granularity.Monthly,
+          tenantId: config.tenancy_id,
+        },
+      }),
+      client.requestSummarizedUsages({
+        requestSummarizedUsagesDetails: {
+          timeUsageStarted: creditStart,
+          timeUsageEnded: creditEnd,
+          granularity: usageapi.models.RequestSummarizedUsagesDetails.Granularity.Monthly,
+          queryType: usageapi.models.RequestSummarizedUsagesDetails.QueryType.Credit,
+          tenantId: config.tenancy_id,
+        },
+      }),
+    ]);
+
+    const costItems = costResponse.usageAggregation?.items ?? [];
+    const totalCost = costItems.reduce((sum, item) => sum + (item.computedAmount ?? 0), 0);
+    const currency = costItems[0]?.currency ?? "USD";
+
+    const creditItems = (creditResponse.usageAggregation?.items ?? []).filter(
+      (item) => (item.computedAmount ?? 0) !== 0
+    );
+
+    const credits: CreditEntry[] = creditItems.map((item) => ({
+      amount: Math.round((item.computedAmount ?? 0) * 100) / 100,
+      currency: item.currency ?? currency,
+      expiresAt: item.timeUsageEnded.toISOString(),
+    }));
+
+    const totalCredits =
+      credits.length > 0
+        ? Math.round(credits.reduce((sum, c) => sum + c.amount, 0) * 100) / 100
+        : undefined;
 
     return {
       provider: "oci",
@@ -55,6 +87,7 @@ export function createOciProvider(name: string, config: OciAccountConfig): Provi
       totalCost: Math.round(totalCost * 100) / 100,
       currency,
       lastUpdated: new Date().toISOString(),
+      ...(credits.length > 0 && { totalCredits, credits }),
     };
   };
 }
