@@ -18,7 +18,7 @@ This guide walks you through enabling GCP Cloud Billing export to BigQuery and c
 4. Choose a **Location** near your workload.
 5. Click **Create dataset**.
 
-Note the **Project ID** (shown at the top of the console) and the **Dataset ID** — you'll need both in `gcp.yaml`.
+Note the **Dataset ID** — you'll need it in `gcp.yaml`.
 
 ---
 
@@ -106,8 +106,7 @@ This step scopes data access to the billing dataset exclusively.
 2. Click `billing-reader@<project-id>.iam.gserviceaccount.com`.
 3. Go to the **Keys** tab → **Add key** → **Create new key**.
 4. Select **JSON** → **Create**.
-5. The key file downloads automatically — store it somewhere safe.
-6. Move it into a `keys/` directory inside the repo root (e.g. `keys/main-billing-sa.json`). The `keys/` directory is gitignored — never commit key files.
+5. The key file downloads automatically. Open it and copy the full JSON content — you'll paste it into `gcp.yaml` in Step 6.
 
 You may see the error "An organisation policy that blocks service accounts key creation has been enforced on your organisation." when you trying to create new key for Service Account.
 
@@ -187,4 +186,4 @@ Expected response:
 | `Permission denied on dataset` | SA missing `BigQuery Data Viewer` on the dataset | Repeat Step 4c |
 | `Permission denied on project` | SA missing `BigQuery Job User` | Repeat Step 4b |
 | `SyntaxError: Unexpected token` | Malformed `key_json` | Ensure the value is valid JSON; copy directly from the downloaded key file |
-| `Dataset not found` | Wrong `project_id` or `dataset` | Check values match BigQuery console |
+| `Dataset not found` | Wrong `dataset` | Check the dataset ID matches BigQuery console |
