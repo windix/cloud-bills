@@ -14,6 +14,8 @@ mock.module("@google-cloud/bigquery", () => ({
 
 const { createGcpProvider, loadGcpConfig } = await import("./gcp");
 
+const KEY_JSON = JSON.stringify({ project_id: "my-project", type: "service_account" });
+
 test("loadGcpConfig returns empty config when file does not exist", () => {
   const config = loadGcpConfig("/nonexistent/path/gcp.yaml");
   expect(config.default).toBe("");
@@ -24,7 +26,7 @@ test("loadGcpConfig parses YAML into ProviderConfig", () => {
   const tmpPath = "/tmp/gcp-test.yaml";
   writeFileSync(
     tmpPath,
-    `default: main\nmain:\n  key_file: ./keys/sa.json\n  project_id: my-project\n  dataset: billing_export\n  billing_account_id: "AAAAAA-BBBBBB-CCCCCC"\n`
+    `default: main\nmain:\n  key_json: '${KEY_JSON}'\n  dataset: billing_export\n  billing_account_id: "AAAAAA-BBBBBB-CCCCCC"\n`
   );
   const config = loadGcpConfig(tmpPath);
   unlinkSync(tmpPath);
@@ -36,8 +38,7 @@ test("loadGcpConfig parses YAML into ProviderConfig", () => {
 
 test("createGcpProvider returns correct CostResult from BigQuery rows", async () => {
   const provider = createGcpProvider("main", {
-    key_file: "./keys/sa.json",
-    project_id: "my-project",
+    key_json: KEY_JSON,
     dataset: "billing_export",
     billing_account_id: "AAAAAA-BBBBBB-CCCCCC",
   });
@@ -52,8 +53,7 @@ test("createGcpProvider returns correct CostResult from BigQuery rows", async ()
 test("createGcpProvider returns 0 cost and USD when rows are empty", async () => {
   mockQuery.mockImplementationOnce(() => Promise.resolve([[]]));
   const provider = createGcpProvider("main", {
-    key_file: "./keys/sa.json",
-    project_id: "my-project",
+    key_json: KEY_JSON,
     dataset: "billing_export",
     billing_account_id: "AAAAAA-BBBBBB-CCCCCC",
   });
@@ -67,8 +67,7 @@ test("createGcpProvider propagates BigQuery errors", async () => {
     Promise.reject(new Error("BigQuery error"))
   );
   const provider = createGcpProvider("main", {
-    key_file: "./keys/sa.json",
-    project_id: "my-project",
+    key_json: KEY_JSON,
     dataset: "billing_export",
     billing_account_id: "AAAAAA-BBBBBB-CCCCCC",
   });

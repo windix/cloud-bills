@@ -4,8 +4,7 @@ import { readFileSync } from "fs";
 import type { CostResult, ProviderFn, ProviderConfig } from "./types";
 
 export interface GcpAccountConfig {
-  key_file: string;
-  project_id: string;
+  key_json: string;
   dataset: string;
   billing_account_id: string;
 }
@@ -17,13 +16,12 @@ interface GcpYaml {
 
 export function createGcpProvider(name: string, config: GcpAccountConfig): ProviderFn {
   return async (): Promise<CostResult> => {
-    const client = new BigQuery({
-      projectId: config.project_id,
-      keyFilename: config.key_file,
-    });
+    const credentials = JSON.parse(config.key_json);
+    const projectId: string = credentials.project_id;
+    const client = new BigQuery({ projectId, credentials });
 
     const tableSuffix = config.billing_account_id.replace(/-/g, "_");
-    const tableRef = `${config.project_id}.${config.dataset}.gcp_billing_export_v1_${tableSuffix}`;
+    const tableRef = `${projectId}.${config.dataset}.gcp_billing_export_v1_${tableSuffix}`;
 
     const query = `
       SELECT SUM(cost) AS total_cost, currency

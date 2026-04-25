@@ -3,8 +3,9 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "prepare:all": "bun install && cd dashboard && bun install",
     "dev": "bun --hot src/index.ts",
-    "dev:all": "echo \"Please visit http://localhost:5713\" && concurrently \"bun run dev\" \"cd dashboard && bun run dev\"",
+    "dev:all": "echo \"Please visit http://localhost:5173\" && concurrently \"bun run dev\" \"cd dashboard && bun run dev\"",
     "bench:docker": "bun scripts/benchmark-docker.ts",
     "test:all": "concurrently \"bun test\" \"cd dashboard && bun run test\"",
     "start": "bun src/index.ts"

@@ -5,20 +5,30 @@
 # Name of the account to use when no account is specified in the API path.
 default: main
 
+# Embed the service account JSON directly. project_id is derived from the key.
 main:
-  # Path to your service account JSON key file (relative to repo root).
-  key_file: ./config/keys/main-billing-sa.json
-  # GCP project that hosts the BigQuery billing export dataset.
-  project_id: my-gcp-project
+  key_json: |
+    {
+      "type": "service_account",
+      "project_id": "my-gcp-project",
+      "private_key_id": "...",
+      "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+      "client_email": "billing-reader@my-gcp-project.iam.gserviceaccount.com",
+      "client_id": "...",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "...",
+      "universe_domain": "googleapis.com"
+    }
   # BigQuery dataset name where billing export lives.
   dataset: billing_export
   # Your GCP billing account ID (format: XXXXXX-XXXXXX-XXXXXX).
-  # Used to derive the BigQuery table name automatically.
   billing_account_id: "AAAAAA-BBBBBB-CCCCCC"
 
 # Add more accounts by repeating the block with a different name.
 # secondary:
-#   key_file: ./config/keys/secondary-billing-sa.json
-#   project_id: another-gcp-project
+#   key_json: |
+#     { ... }
 #   dataset: billing_export
 #   billing_account_id: "DDDDDD-EEEEEE-FFFFFF"
