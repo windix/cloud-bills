@@ -13,7 +13,7 @@ COPY package.json ./
 RUN npm install
 COPY src/ ./src/
 COPY tsconfig.json ./
-RUN npx esbuild src/server.node.ts --bundle --platform=node --packages=external --outfile=dist/server.node.js
+RUN npx esbuild src/server.node.ts --bundle --platform=node --packages=external --outfile=dist/server.node.cjs
 
 # Stage 3: runtime
 FROM node:alpine AS runtime
@@ -23,4 +23,4 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=dashboard-builder /build/dist ./dashboard/dist
 EXPOSE 3000
-CMD ["node", "dist/server.node.js"]
+CMD ["node", "dist/server.node.cjs"]
