@@ -50,7 +50,7 @@ jobs:
   docker-build:
     name: Docker Build (${{ matrix.name }})
     runs-on: ubuntu-latest
-    needs: [test-backend, test-dashboard]
+    needs: [audit-backend, audit-dashboard, test-backend, test-dashboard]
     strategy:
       matrix:
         include:
