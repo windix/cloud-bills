@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { CostResultSchema, ErrorSchema, BalanceItemSchema } from "./schemas";
+import { CostResultSchema, ErrorSchema, BalanceItemSchema, CreditEntrySchema } from "./schemas";
 
 describe("CostResultSchema", () => {
   test("accepts a valid CostResult", () => {
@@ -47,6 +47,43 @@ describe("BalanceItemSchema", () => {
       provider: "oci",
       account: "tenancy",
       error: "auth failed",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("CreditEntrySchema", () => {
+  test("accepts a valid credit entry", () => {
+    const result = CreditEntrySchema.safeParse({
+      amount: 400,
+      currency: "AUD",
+      expiresAt: "2026-05-22T00:00:00.000Z",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("CostResultSchema credits extension", () => {
+  test("accepts totalCredits and credits array", () => {
+    const result = CostResultSchema.safeParse({
+      provider: "oci",
+      account: "windizjp",
+      totalCost: 12.34,
+      currency: "AUD",
+      lastUpdated: "2026-04-26T00:00:00.000Z",
+      totalCredits: 400,
+      credits: [{ amount: 400, currency: "AUD", expiresAt: "2026-05-22T00:00:00.000Z" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("accepts response without credits fields (non-OCI providers)", () => {
+    const result = CostResultSchema.safeParse({
+      provider: "aws",
+      account: "prod",
+      totalCost: 99.99,
+      currency: "USD",
+      lastUpdated: "2026-04-26T00:00:00.000Z",
     });
     expect(result.success).toBe(true);
   });

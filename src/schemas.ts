@@ -1,5 +1,15 @@
 import { z } from "@hono/zod-openapi";
 
+export const CreditEntrySchema = z
+  .object({
+    amount: z.number().openapi({ example: 400.0 }),
+    currency: z.string().openapi({ example: "AUD" }),
+    expiresAt: z
+      .string()
+      .openapi({ example: "2026-05-22T00:00:00.000Z", description: "ISO 8601 datetime" }),
+  })
+  .openapi("CreditEntry");
+
 export const CostResultSchema = z
   .object({
     provider: z.string().openapi({ example: "aws" }),
@@ -9,6 +19,8 @@ export const CostResultSchema = z
     lastUpdated: z
       .string()
       .openapi({ example: "2026-04-22T00:00:00Z", description: "ISO 8601 datetime" }),
+    totalCredits: z.number().optional().openapi({ example: 400.0 }),
+    credits: z.array(CreditEntrySchema).optional(),
   })
   .openapi("CostResult");
 
