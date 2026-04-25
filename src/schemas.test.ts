@@ -61,6 +61,11 @@ describe("CreditEntrySchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  test("rejects entry missing expiresAt", () => {
+    const result = CreditEntrySchema.safeParse({ amount: 400, currency: "AUD" });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("CostResultSchema credits extension", () => {
