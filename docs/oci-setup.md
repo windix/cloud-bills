@@ -47,6 +47,12 @@ Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-rep
 
 5.  Click **Create**.
 
+## Credits / Universal Credits
+
+OCI Universal Credits balance is **not available via the public API**. The subscription and commitment data is served by Oracle's internal OneSubscription service, which is not accessible to standard IAM users regardless of policy — there are no IAM resource types that grant API key access to it.
+
+Credits are intentionally omitted from the OCI cost response. The `credits` field (supported by other providers) will not appear in OCI results.
+
 ## 4. Generate API Keys
 
 1.  Go to the detail page of the `cloud-bills-reader` user you created in Step 2.
