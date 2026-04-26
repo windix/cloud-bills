@@ -67,7 +67,7 @@ test("createGcpProvider returns correct CostResult with credit breakdown", async
   ]);
 });
 
-test("createGcpProvider returns 0 cost and empty creditDetails when rows are empty", async () => {
+test("createGcpProvider omits credits fields when rows are empty", async () => {
   mockQuery.mockImplementationOnce(() => Promise.resolve([[]])); // cost query: empty
   mockQuery.mockImplementationOnce(() => Promise.resolve([[]])); // credits query: empty
 
@@ -78,12 +78,12 @@ test("createGcpProvider returns 0 cost and empty creditDetails when rows are emp
   });
   const result = await provider();
   expect(result.totalCost).toBe(0);
-  expect(result.credits).toBe(0);
   expect(result.currency).toBe("USD");
-  expect(result.creditDetails).toEqual([]);
+  expect(result.credits).toBeUndefined();
+  expect(result.creditDetails).toBeUndefined();
 });
 
-test("createGcpProvider returns 0 credits and empty creditDetails when no credits are applied", async () => {
+test("createGcpProvider omits credits fields when no credits are applied", async () => {
   mockQuery.mockImplementationOnce(() =>
     Promise.resolve([[{ total_cost: 20.0, total_credits: null, currency: "USD" }]])
   );
@@ -96,8 +96,8 @@ test("createGcpProvider returns 0 credits and empty creditDetails when no credit
   });
   const result = await provider();
   expect(result.totalCost).toBe(20.0);
-  expect(result.credits).toBe(0);
-  expect(result.creditDetails).toEqual([]);
+  expect(result.credits).toBeUndefined();
+  expect(result.creditDetails).toBeUndefined();
 });
 
 test("createGcpProvider propagates BigQuery errors", async () => {

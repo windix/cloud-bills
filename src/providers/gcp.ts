@@ -66,12 +66,16 @@ export function createGcpProvider(name: string, config: GcpAccountConfig): Provi
       amount: Math.round(row.amount * 100) / 100,
     }));
 
+    const hasCredits = creditDetails.length > 0;
+
     return {
       provider: "gcp",
       account: name,
       totalCost: Math.round(totalCost * 100) / 100,
-      credits: Math.round(totalCredits * 100) / 100,
-      creditDetails,
+      ...(hasCredits && {
+        credits: Math.round(totalCredits * 100) / 100,
+        creditDetails,
+      }),
       currency,
       lastUpdated: new Date().toISOString(),
     };
