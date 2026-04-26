@@ -1,5 +1,7 @@
 # cloud-bills
 
+[English](README.md) | [中文](README_CN.md)
+
 统一的 REST API，用于查询各云服务商当月的云支出。基于 Bun、Hono 和 TypeScript 构建——可本地运行，以一致的 JSON 格式返回支出数据。
 
 ## 支持的云服务商

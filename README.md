@@ -1,5 +1,7 @@
 # cloud-bills
 
+[English](README.md) | [中文](README_CN.md)
+
 A unified REST API for querying current-month cloud spend across providers. Built with Bun, Hono, and TypeScript — runs locally and returns spend data in a consistent JSON format.
 
 ## Supported providers
