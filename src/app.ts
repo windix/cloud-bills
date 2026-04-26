@@ -8,14 +8,14 @@ import { loadGcpConfig } from "./providers/gcp";
 import type { ProviderConfig, CostResult } from "./providers/types";
 import { CostResultSchema, ErrorSchema, BalanceItemSchema, type BalanceItem } from "./schemas";
 
-const VALID_PROVIDERS = ["aws", "gcp", "azure", "oci"] as const;
-
 const providerConfigs: Record<string, ProviderConfig> = {
   oci: loadOciConfig(),
   aws: loadAwsConfig(),
   azure: loadAzureConfig(),
   gcp: loadGcpConfig(),
 };
+
+const VALID_PROVIDERS = Object.keys(providerConfigs);
 
 export const app = new OpenAPIHono();
 
@@ -68,8 +68,6 @@ app.openapi(balanceRoute, async (c) => {
   return c.json(response, 200);
 });
 
-// shared resolver
-
 async function resolveAccount(
   providerName: string,
   accountParam: string | undefined
@@ -89,6 +87,22 @@ async function resolveAccount(
   }
 }
 
+// shared resolver
+const providerResponses = {
+  200: {
+    content: { "application/json": { schema: CostResultSchema } },
+    description: "Account balance",
+  },
+  404: {
+    content: { "application/json": { schema: ErrorSchema } },
+    description: "Account not found",
+  },
+  500: {
+    content: { "application/json": { schema: ErrorSchema } },
+    description: "Provider fetch error",
+  },
+};
+
 // Register routes only for valid providers
 for (const provider of VALID_PROVIDERS) {
   // /{provider}
@@ -99,20 +113,7 @@ for (const provider of VALID_PROVIDERS) {
     request: {
       params: z.object({}),
     },
-    responses: {
-      200: {
-        content: { "application/json": { schema: CostResultSchema } },
-        description: "Account balance",
-      },
-      404: {
-        content: { "application/json": { schema: ErrorSchema } },
-        description: "Account not found",
-      },
-      500: {
-        content: { "application/json": { schema: ErrorSchema } },
-        description: "Provider fetch error",
-      },
-    },
+    responses: providerResponses,
   });
 
   app.openapi(providerRoute, async (c) => {
@@ -131,20 +132,7 @@ for (const provider of VALID_PROVIDERS) {
         account: z.string().openapi({ example: "production", description: "Account name" }),
       }),
     },
-    responses: {
-      200: {
-        content: { "application/json": { schema: CostResultSchema } },
-        description: "Account balance",
-      },
-      404: {
-        content: { "application/json": { schema: ErrorSchema } },
-        description: "Account not found",
-      },
-      500: {
-        content: { "application/json": { schema: ErrorSchema } },
-        description: "Provider fetch error",
-      },
-    },
+    responses: providerResponses,
   });
 
   app.openapi(providerAccountRoute, async (c) => {
