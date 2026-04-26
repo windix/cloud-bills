@@ -189,6 +189,23 @@ Both fields are sourced from the same billing export table as cost data, so no a
 
 ---
 
+## Understanding when credits appear
+
+The `credits` and `creditDetails` fields are only present in the response when credits have actually been **applied against usage charges** in the current billing period. If you have credits on your account but neither field appears, the most likely reasons are:
+
+**Credits not yet consumed**
+Credits are recorded in the billing export only when GCP applies them to offset a charge. A credit that is 100% remaining (nothing spent yet) will not appear in BigQuery, and therefore not in this API. You can confirm your available credits in the GCP Console under **Billing → Credits** — but until they are consumed, the API will only return `totalCost`.
+
+**Billing period not yet settled**
+Some credit types (particularly committed-use discounts) are settled at the end of the billing cycle rather than in real time. They may not appear in the export until the invoice is finalised.
+
+**Export set up recently**
+GCP does not backfill historical credit data when a new billing export is created. Only credits applied after the export was enabled will appear.
+
+Once credits start being consumed, they appear automatically — no configuration changes are needed.
+
+---
+
 ## Troubleshooting
 
 | Error | Cause | Fix |
