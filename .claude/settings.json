@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Checking if Chinese translation needs updating...",
+            "command": "FILE=$(jq -r '.tool_input.file_path // \"\"'); REPO=$(git -C \"$(dirname \"$FILE\")\" rev-parse --show-toplevel 2>/dev/null); REL=\"${FILE#$REPO/}\"; case \"$REL\" in README.md) CN=\"README_CN.md\";; docs/aws-setup.md) CN=\"docs/aws-setup_CN.md\";; docs/azure-setup.md) CN=\"docs/azure-setup_CN.md\";; docs/gcp-setup.md) CN=\"docs/gcp-setup_CN.md\";; docs/oci-setup.md) CN=\"docs/oci-setup_CN.md\";; docs/docker-benchmark.md) CN=\"docs/docker-benchmark_CN.md\";; dashboard/README.md) CN=\"dashboard/README_CN.md\";; *) exit 0;; esac; echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PostToolUse\\\",\\\"additionalContext\\\":\\\"REMINDER: $REL was just updated. You MUST now update the Chinese translation at $REPO/$CN to reflect the same changes. Translate any new or changed prose to Simplified Chinese while keeping code blocks, commands, URLs, and technical terms in English.\\\"}}\""
+          }
+        ]
+      }
+    ]
+  }
+}
