@@ -4,6 +4,8 @@
 
 统一的 REST API，用于查询各云服务商当月的云支出。基于 Bun、Hono 和 TypeScript 构建——可本地运行，以一致的 JSON 格式返回支出数据。
 
+![cloud bills](docs/images/cloud-bills-hero.jpg)
+
 ## 支持的云服务商
 
 | 服务商 | 配置文件 | 配置指南 |

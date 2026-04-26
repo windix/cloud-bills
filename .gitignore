@@ -6,3 +6,5 @@ dist/
 .DS_Store
 config/*.yaml
 benchmarks/results/*.json
+
+.superpowers/
