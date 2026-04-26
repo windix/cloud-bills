@@ -1,7 +1,7 @@
 import { BigQuery } from "@google-cloud/bigquery";
 import { parse } from "yaml";
 import { readFileSync } from "fs";
-import type { CostResult, ProviderFn, ProviderConfig } from "./types";
+import type { CostResult, CreditDetail, ProviderFn, ProviderConfig } from "./types";
 
 export interface GcpAccountConfig {
   key_json: string;
@@ -23,27 +23,55 @@ export function createGcpProvider(name: string, config: GcpAccountConfig): Provi
     const tableSuffix = config.billing_account_id.replace(/-/g, "_");
     const tableRef = `${projectId}.${config.dataset}.gcp_billing_export_v1_${tableSuffix}`;
 
-    const query = `
-      SELECT SUM(cost) AS total_cost, currency
+    const costQuery = `
+      SELECT
+        SUM(cost) AS total_cost,
+        SUM((SELECT SUM(c.amount) FROM UNNEST(credits) AS c)) AS total_credits,
+        currency
       FROM \`${tableRef}\`
       WHERE invoice.month = FORMAT_DATE('%Y%m', CURRENT_DATE())
       GROUP BY currency
     `;
 
-    const [rows] = await client.query(query);
+    const creditsQuery = `
+      SELECT
+        credit.type AS type,
+        COALESCE(credit.full_name, credit.name) AS name,
+        SUM(credit.amount) AS amount
+      FROM \`${tableRef}\`,
+      UNNEST(credits) AS credit
+      WHERE invoice.month = FORMAT_DATE('%Y%m', CURRENT_DATE())
+      GROUP BY type, COALESCE(credit.full_name, credit.name)
+      ORDER BY amount ASC
+    `;
+
+    const [[costRows], [creditRows]] = await Promise.all([
+      client.query(costQuery),
+      client.query(creditsQuery),
+    ]);
 
     let totalCost = 0;
+    let totalCredits = 0;
     let currency = "USD";
 
-    if (rows.length > 0) {
-      totalCost = rows[0].total_cost;
-      currency = rows[0].currency;
+    if (costRows.length > 0) {
+      totalCost = costRows[0].total_cost ?? 0;
+      totalCredits = costRows[0].total_credits ?? 0;
+      currency = costRows[0].currency;
     }
+
+    const creditDetails: CreditDetail[] = creditRows.map((row: any) => ({
+      type: row.type,
+      name: row.name,
+      amount: Math.round(row.amount * 100) / 100,
+    }));
 
     return {
       provider: "gcp",
       account: name,
       totalCost: Math.round(totalCost * 100) / 100,
+      credits: Math.round(totalCredits * 100) / 100,
+      creditDetails,
       currency,
       lastUpdated: new Date().toISOString(),
     };

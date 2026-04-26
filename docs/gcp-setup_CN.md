@@ -135,8 +135,20 @@ gcp_billing_export_v1_<BILLING_ACCOUNT_ID_WITH_UNDERSCORES>
 default: main
 
 main:
-  key_file: ./keys/main-billing-sa.json        # 从仓库根目录到 JSON 密钥的相对路径
-  project_id: my-gcp-project                   # 托管 BigQuery 数据集的项目
+  key_json: |
+    {
+      "type": "service_account",
+      "project_id": "my-gcp-project",
+      "private_key_id": "...",
+      "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+      "client_email": "billing-reader@my-gcp-project.iam.gserviceaccount.com",
+      "client_id": "...",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "...",
+      "universe_domain": "googleapis.com"
+    }
   dataset: billing_export                       # 第 1 步中的数据集 ID
   billing_account_id: "AAAAAA-BBBBBB-CCCCCC"   # 第 3 步中的结算账户 ID
 ```
@@ -160,10 +172,21 @@ curl http://localhost:3000/gcp
   "provider": "gcp",
   "account": "main",
   "totalCost": 12.34,
+  "credits": -2.50,
+  "creditDetails": [
+    { "type": "PROMOTION", "name": "Free trial credit", "amount": -2.00 },
+    { "type": "FREE_TIER", "name": "Free tier", "amount": -0.50 }
+  ],
   "currency": "USD",
   "lastUpdated": "2026-04-23T10:00:00.000Z"
 }
 ```
+
+`credits` 是本月所有抵用金的总和（负值）。`creditDetails` 将该总额按抵用金类型和名称拆分，按节省金额从大到小排列。抵用金类型包括 `COMMITTED_USE_DISCOUNT`、`SUSTAINED_USE_DISCOUNT`、`PROMOTION`、`FREE_TIER`、`RESELLER_MARGIN` 和 `SUBSCRIPTION_BENEFIT`。
+
+两个字段均来源于与费用数据相同的结算导出表，无需任何额外 IAM 权限。
+
+> **注意：** 抵用金的到期日期无法通过任何公开 API 获取——仅可在 GCP 控制台的 **计费 → 抵用金** 页面查看。
 
 ---
 
@@ -174,5 +197,5 @@ curl http://localhost:3000/gcp
 | `Not found: Table ... gcp_billing_export_v1_...` | 导出尚未填充或结算账户 ID 错误 | 启用导出后等待 24–48 小时；仔细检查 `billing_account_id` |
 | `Permission denied on dataset` | 服务账号缺少数据集上的 `BigQuery Data Viewer` | 重复步骤 4c |
 | `Permission denied on project` | 服务账号缺少 `BigQuery Job User` | 重复步骤 4b |
-| `Could not load the key file` | `key_file` 路径错误 | 确认路径相对于仓库根目录 |
+| `SyntaxError: Unexpected token` | `key_json` 格式错误 | 确认值为有效 JSON；直接从下载的密钥文件复制 |
 | `Dataset not found` | `project_id` 或 `dataset` 错误 | 与 BigQuery 控制台中的值对照检查 |

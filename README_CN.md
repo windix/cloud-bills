@@ -94,6 +94,23 @@ curl http://localhost:3000/balance
 }
 ```
 
+GCP 响应还包含 `credits`（总计，负值）和 `creditDetails`（按类型拆分明细）：
+
+```json
+{
+  "provider": "gcp",
+  "account": "main",
+  "totalCost": 12.34,
+  "credits": -2.50,
+  "creditDetails": [
+    { "type": "PROMOTION", "name": "Free trial credit", "amount": -2.00 },
+    { "type": "FREE_TIER", "name": "Free tier", "amount": -0.50 }
+  ],
+  "currency": "USD",
+  "lastUpdated": "2026-04-22T10:00:00.000Z"
+}
+```
+
 ## 控制台（Dashboard）
 
 [`dashboard/`](dashboard/) 目录中提供了一个查看费用数据的 Web 界面，它会请求 `GET /balance` 并展示每个服务商的汇总卡片和按费用排序的账户列表，支持亮色/暗色主题。

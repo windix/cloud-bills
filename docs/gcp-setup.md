@@ -171,10 +171,21 @@ Expected response:
   "provider": "gcp",
   "account": "main",
   "totalCost": 12.34,
+  "credits": -2.50,
+  "creditDetails": [
+    { "type": "PROMOTION", "name": "Free trial credit", "amount": -2.00 },
+    { "type": "FREE_TIER", "name": "Free tier", "amount": -0.50 }
+  ],
   "currency": "USD",
   "lastUpdated": "2026-04-23T10:00:00.000Z"
 }
 ```
+
+`credits` is the total of all credits applied this month (negative value). `creditDetails` breaks that total down by credit type and program name, ordered from largest to smallest savings. Credit types include `COMMITTED_USE_DISCOUNT`, `SUSTAINED_USE_DISCOUNT`, `PROMOTION`, `FREE_TIER`, `RESELLER_MARGIN`, and `SUBSCRIPTION_BENEFIT`.
+
+Both fields are sourced from the same billing export table as cost data, so no additional IAM permissions are required.
+
+> **Note:** Credit expiry dates are not available through any public API — they are only visible in the GCP Console under **Billing → Credits**.
 
 ---
 
