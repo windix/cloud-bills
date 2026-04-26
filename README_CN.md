@@ -28,7 +28,8 @@ curl -fsSL https://bun.sh/install | bash
 ```bash
 git clone <repo>
 cd cloud-bills
-bun install
+# 安装 API（根目录）和控制台 UI（/dashboard）的依赖包
+bun prepare:all
 ```
 
 复制并填写每个要使用的云服务商对应的配置文件：
@@ -48,7 +49,8 @@ bun run start    # 生产模式
 bun run dev:all  # 同时启动开发服务器和控制台
 ```
 
-服务器监听地址：**http://localhost:3000**
+API 服务器监听地址：**http://localhost:3000**
+控制台 UI 监听地址：**http://localhost:5173**（使用 `bun run dev:all` 时访问此地址）
 
 ## API 文档
 
@@ -97,7 +99,7 @@ curl http://localhost:3000/balance
 [`dashboard/`](dashboard/) 目录中提供了一个查看费用数据的 Web 界面，它会请求 `GET /balance` 并展示每个服务商的汇总卡片和按费用排序的账户列表，支持亮色/暗色主题。
 
 ```bash
-cd dashboard && bun install && bun run dev
+cd dashboard && bun run dev
 # 打开 http://localhost:5173
 ```
 

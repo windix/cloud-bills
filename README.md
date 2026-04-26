@@ -28,7 +28,8 @@ curl -fsSL https://bun.sh/install | bash
 ```bash
 git clone <repo>
 cd cloud-bills
-bun install
+# install packages for both api (root folder) and dashboard ui (/dashboard)
+bun prepare:all
 ```
 
 Copy and fill in the config file for each provider you want to use:
@@ -48,7 +49,8 @@ bun run start    # production
 bun run dev:all  # start both development server and dashboard together
 ```
 
-The server listens on **http://localhost:3000**.
+The API server listens on **http://localhost:3000**
+The dashboard UI listens on **http://localhost:5173** (access this when using `bun run dev:all`)
 
 ## API documentation
 
@@ -97,7 +99,7 @@ curl http://localhost:3000/balance
 A web UI for viewing cost data is available in the [`dashboard/`](dashboard/) directory. It fetches `GET /balance` and displays per-provider summary cards and a sorted account list with light/dark theme support.
 
 ```bash
-cd dashboard && bun install && bun run dev
+cd dashboard && bun run dev
 # open http://localhost:5173
 ```
 
