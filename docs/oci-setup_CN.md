@@ -2,14 +2,20 @@
 
 要从 Oracle Cloud Infrastructure (OCI) 获取费用数据，您应创建一个专用 IAM 用户，并授予其读取使用情况数据所需的最小权限。
 
-## 1. 获取租户 OCID
+选择以下两种方式之一：[**控制台操作**](#控制台操作) 或 [**CLI 方式**](#cli-方式)，完成后配置 [`oci.yaml`](#配置-ociyaml)。
+
+---
+
+## 控制台操作
+
+### 1. 获取租户 OCID
 
 1. 登录 [OCI 控制台](https://cloud.oracle.com)。
 2. 点击右上角的 **个人资料图标** → **租户：`<您的租户名称>`**。
 3. 复制租户详细信息页面上显示的 **OCID**。
     *   该值以 `ocid1.tenancy.oc1..` 开头
 
-## 2. 创建 IAM 组和用户
+### 2. 创建 IAM 组和用户
 
 通过组管理权限是最佳实践。
 
@@ -25,7 +31,7 @@
     *   这将是 `oci.yaml` 中的 `user_id`
     *   该值以 `ocid1.user.oc1..` 开头
 
-## 3. 创建最小权限策略
+### 3. 创建最小权限策略
 
 若要查询费用数据，用户需要在租户级别读取使用情况报告的权限。
 
@@ -47,7 +53,7 @@ Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-rep
 
 5. 点击 **创建**。
 
-## 4. 生成 API 密钥
+### 4. 生成 API 密钥
 
 1. 进入您在步骤 2 中创建的 `cloud-bills-reader` 用户的详细信息页面。
 2. 在 **资源**（左侧边栏）下，点击 **API 密钥**。
@@ -57,9 +63,80 @@ Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-rep
 6. 点击 **添加**。
 7. 从确认对话框中复制 **指纹**（格式：`xx:xx:xx:xx:...`）。
 
-## 5. 配置 `oci.yaml`
+请前往 [配置 `oci.yaml`](#配置-ociyaml) 部分继续。
 
-在项目根目录根据 `oci.yaml.example` 创建 `oci.yaml` 文件。
+---
+
+## CLI 方式
+
+如果您已安装 OCI CLI 并配置了管理员 profile，可以用一段脚本完成上述步骤 1–4。完成后继续配置 [`oci.yaml`](#配置-ociyaml)。
+
+**前置条件：** 安装 OCI CLI（macOS 执行 `brew install oci-cli`；其他平台参见[官方文档](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)），然后运行 `oci setup config` 配置管理员 profile。
+
+```bash
+# 如需要请更新以下变量
+GROUP_NAME=cloud-bills-readers
+USER_NAME=cloud-bills-reader
+USER_EMAIL=cloud-bills-reader@email.com
+
+# 从管理员 ~/.oci/config 读取租户 OCID
+TENANCY_OCID=$(awk -F= '/tenancy/{print $2; exit}' ~/.oci/config | tr -d ' ')
+
+# 创建组
+GROUP_OCID=$(oci iam group create \
+  --name ${GROUP_NAME} \
+  --description "Read-only access for cloud-bills" \
+  --query 'data.id' --raw-output)
+
+# 创建用户
+USER_OCID=$(oci iam user create \
+  --name ${USER_NAME} \
+  --email ${USER_EMAIL} \
+  --description "Service user for cloud-bills" \
+  --query 'data.id' --raw-output)
+
+# 将用户加入组
+oci iam group add-user --user-id "$USER_OCID" --group-id "$GROUP_OCID"
+
+# 在租户（根）级别创建最小权限策略
+oci iam policy create \
+  --compartment-id "$TENANCY_OCID" \
+  --name CloudBillsReadUsage \
+  --description "Allow ${GROUP_NAME} to read usage reports" \
+  --statements '["Allow group '${GROUP_NAME}' to read usage-reports in tenancy"]'
+
+# 在本地生成 RSA 密钥对
+mkdir -p ~/.oci/keys
+openssl genrsa -out ~/.oci/keys/${USER_NAME}.pem 2048
+chmod 600 ~/.oci/keys/${USER_NAME}.pem
+openssl rsa -pubout \
+  -in  ~/.oci/keys/${USER_NAME}.pem \
+  -out ~/.oci/keys/${USER_NAME}-public.pem
+
+# 上传公钥并获取指纹
+FINGERPRINT=$(oci iam user api-key upload \
+  --user-id "$USER_OCID" \
+  --key-file ~/.oci/keys/${USER_NAME}-public.pem \
+  --query 'data.fingerprint' --raw-output)
+
+echo ""
+echo "将以下值填入 config/oci.yaml："
+echo "  tenancy_id:  $TENANCY_OCID"
+echo "  user_id:     $USER_OCID"
+echo "  fingerprint: $FINGERPRINT"
+echo "  private_key: （~/.oci/keys/${USER_NAME}.pem 的文件内容）"
+```
+
+> **身份域说明：** 如果您的当前域是 `OracleIdentityCloudService`，请将 `--statements` 的值替换为：
+> ```
+> Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-reports in tenancy
+> ```
+
+---
+
+## 配置 `oci.yaml`
+
+完成上述控制台操作或 CLI 方式后，在项目根目录根据 `config/oci.yaml.example` 创建 `config/oci.yaml` 文件。
 
 对于 `private_key`，使用 YAML 块标量（`|`）直接粘贴 PEM 文件内容：
 
