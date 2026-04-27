@@ -49,7 +49,13 @@ bun run start    # production
 bun run dev:all  # start both development server and dashboard together
 ```
 
-The API server listens on **http://localhost:3000**
+The API server listens on **http://localhost:3000** by default. Set the `PORT` environment variable to use a different port:
+
+```bash
+PORT=8080 bun run dev
+PORT=8080 bun run start
+```
+
 The dashboard UI listens on **http://localhost:5173** (access this when using `bun run dev:all`)
 
 ## API documentation
