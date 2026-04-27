@@ -8,6 +8,6 @@ app.use("/*", serveStatic({ root: "./dashboard/dist" }));
 app.use("/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: () => "index.html" }));
 
 export default {
-  port: 3000,
+  port: parseInt(process.env.PORT ?? "3000"),
   fetch: app.fetch,
 };

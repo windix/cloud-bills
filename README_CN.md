@@ -49,7 +49,13 @@ bun run start    # 生产模式
 bun run dev:all  # 同时启动开发服务器和控制台
 ```
 
-API 服务器监听地址：**http://localhost:3000**
+API 服务器默认监听地址：**http://localhost:3000**。可通过设置 `PORT` 环境变量来使用不同端口：
+
+```bash
+PORT=8080 bun run dev
+PORT=8080 bun run start
+```
+
 控制台 UI 监听地址：**http://localhost:5173**（使用 `bun run dev:all` 时访问此地址）
 
 ## API 文档

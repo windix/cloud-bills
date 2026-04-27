@@ -7,4 +7,4 @@ app.use("/*", serveStatic({ root: "./dashboard/dist" }));
 // SPA fallback: any unmatched path returns index.html for client-side routing
 app.use("/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: () => "index.html" }));
 
-serve({ fetch: app.fetch, port: 3000 });
+serve({ fetch: app.fetch, port: parseInt(process.env.PORT ?? "3000") });
