@@ -1,18 +1,21 @@
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
-import { z } from "@hono/zod-openapi";
 import { loadOciConfig } from "./providers/oci";
 import { loadAwsConfig } from "./providers/aws";
 import { loadAzureConfig } from "./providers/azure";
 import { loadGcpConfig } from "./providers/gcp";
 import type { ProviderConfig, CostResult } from "./providers/types";
-import { CostResultSchema, ErrorSchema, BalanceItemSchema, type BalanceItem } from "./schemas";
+import type { BalanceItem } from "./schemas";
+import { balanceRoute, createProviderRoutes } from "./routes";
+import { join } from "path";
+
+const configDir = process.env.CONFIG_DIR ?? "config";
 
 const providerConfigs: Record<string, ProviderConfig> = {
-  oci: loadOciConfig(),
-  aws: loadAwsConfig(),
-  azure: loadAzureConfig(),
-  gcp: loadGcpConfig(),
+  oci: loadOciConfig(join(configDir, "oci.yaml")),
+  aws: loadAwsConfig(join(configDir, "aws.yaml")),
+  azure: loadAzureConfig(join(configDir, "azure.yaml")),
+  gcp: loadGcpConfig(join(configDir, "gcp.yaml")),
 };
 
 const VALID_PROVIDERS = Object.keys(providerConfigs);
@@ -33,21 +36,6 @@ app.doc("/openapi.json", {
 app.get("/docs", swaggerUI({ url: "/openapi.json" }));
 
 // /balance
-
-const balanceRoute = createRoute({
-  method: "get",
-  path: "/balance",
-  summary: "All account balances",
-  description:
-    "Returns cost data for every configured account across all providers. " +
-    "If a provider fetch fails its entry contains an `error` field instead of cost fields.",
-  responses: {
-    200: {
-      content: { "application/json": { schema: z.array(BalanceItemSchema) } },
-      description: "Balance for every account (provider errors embedded inline)",
-    },
-  },
-});
 
 app.openapi(balanceRoute, async (c) => {
   const ordered = Object.entries(providerConfigs).flatMap(([providerName, cfg]) =>
@@ -87,55 +75,17 @@ async function resolveAccount(
   }
 }
 
-// shared resolver
-const providerResponses = {
-  200: {
-    content: { "application/json": { schema: CostResultSchema } },
-    description: "Account balance",
-  },
-  404: {
-    content: { "application/json": { schema: ErrorSchema } },
-    description: "Account not found",
-  },
-  500: {
-    content: { "application/json": { schema: ErrorSchema } },
-    description: "Provider fetch error",
-  },
-};
-
 // Register routes only for valid providers
 for (const provider of VALID_PROVIDERS) {
-  // /{provider}
-  const providerRoute = createRoute({
-    method: "get",
-    path: `/${provider}`,
-    summary: `Default account balance for ${provider}`,
-    request: {
-      params: z.object({}),
-    },
-    responses: providerResponses,
-  });
+  const { defaultRoute, accountRoute } = createProviderRoutes(provider);
 
-  app.openapi(providerRoute, async (c) => {
+  app.openapi(defaultRoute, async (c) => {
     const result = await resolveAccount(provider, undefined);
     if (!result.ok) return c.json({ error: result.error }, result.status);
     return c.json(result.data, 200);
   });
 
-  // /{provider}/{account}
-  const providerAccountRoute = createRoute({
-    method: "get",
-    path: `/${provider}/{account}`,
-    summary: `Specific account balance for ${provider}`,
-    request: {
-      params: z.object({
-        account: z.string().openapi({ example: "production", description: "Account name" }),
-      }),
-    },
-    responses: providerResponses,
-  });
-
-  app.openapi(providerAccountRoute, async (c) => {
+  app.openapi(accountRoute, async (c) => {
     const { account } = c.req.valid("param");
     const result = await resolveAccount(provider, account);
     if (!result.ok) return c.json({ error: result.error }, result.status);
