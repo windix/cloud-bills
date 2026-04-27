@@ -77,7 +77,7 @@ If you have the OCI CLI installed and an admin profile configured, steps 1–4 a
 # place update them if required
 GROUP_NAME=cb-readers
 USER_NAME=cb-reader
-USER_EMAIL=cb-reader@feng.id.au
+USER_EMAIL=cb-reader@email.com
 
 # Read tenancy OCID from your admin ~/.oci/config profile
 TENANCY_OCID=$(awk -F= '/tenancy/{print $2; exit}' ~/.oci/config | tr -d ' ')
