@@ -75,9 +75,9 @@ Allow group 'OracleIdentityCloudService'/'cloud-bills-readers' to read usage-rep
 
 ```bash
 # 如需要请更新以下变量
-GROUP_NAME=cb-readers
-USER_NAME=cb-reader
-USER_EMAIL=cb-reader@email.com
+GROUP_NAME=cloud-bills-readers
+USER_NAME=cloud-bills-reader
+USER_EMAIL=cloud-bills-reader@email.com
 
 # 从管理员 ~/.oci/config 读取租户 OCID
 TENANCY_OCID=$(awk -F= '/tenancy/{print $2; exit}' ~/.oci/config | tr -d ' ')

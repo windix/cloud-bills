@@ -75,9 +75,9 @@ If you have the OCI CLI installed and an admin profile configured, steps 1–4 a
 
 ```bash
 # place update them if required
-GROUP_NAME=cb-readers
-USER_NAME=cb-reader
-USER_EMAIL=cb-reader@email.com
+GROUP_NAME=cloud-bills-readers
+USER_NAME=cloud-bills-reader
+USER_EMAIL=cloud-bills-reader@email.com
 
 # Read tenancy OCID from your admin ~/.oci/config profile
 TENANCY_OCID=$(awk -F= '/tenancy/{print $2; exit}' ~/.oci/config | tr -d ' ')
