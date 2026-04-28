@@ -171,10 +171,38 @@ Expected response:
   "provider": "gcp",
   "account": "main",
   "totalCost": 12.34,
+  "credits": -2.50,
+  "creditDetails": [
+    { "type": "PROMOTION", "name": "Free trial credit", "amount": -2.00 },
+    { "type": "FREE_TIER", "name": "Free tier", "amount": -0.50 }
+  ],
   "currency": "USD",
   "lastUpdated": "2026-04-23T10:00:00.000Z"
 }
 ```
+
+`credits` is the total of all credits applied this month (negative value). `creditDetails` breaks that total down by credit type and program name, ordered from largest to smallest savings. Credit types include `COMMITTED_USE_DISCOUNT`, `SUSTAINED_USE_DISCOUNT`, `PROMOTION`, `FREE_TIER`, `RESELLER_MARGIN`, and `SUBSCRIPTION_BENEFIT`.
+
+Both fields are sourced from the same billing export table as cost data, so no additional IAM permissions are required.
+
+> **Note:** Credit expiry dates are not available through any public API — they are only visible in the GCP Console under **Billing → Credits**.
+
+---
+
+## Understanding when credits appear
+
+The `credits` and `creditDetails` fields are only present in the response when credits have actually been **applied against usage charges** in the current billing period. If you have credits on your account but neither field appears, the most likely reasons are:
+
+**Credits not yet consumed**
+Credits are recorded in the billing export only when GCP applies them to offset a charge. A credit that is 100% remaining (nothing spent yet) will not appear in BigQuery, and therefore not in this API. You can confirm your available credits in the GCP Console under **Billing → Credits** — but until they are consumed, the API will only return `totalCost`.
+
+**Billing period not yet settled**
+Some credit types (particularly committed-use discounts) are settled at the end of the billing cycle rather than in real time. They may not appear in the export until the invoice is finalised.
+
+**Export set up recently**
+GCP does not backfill historical credit data when a new billing export is created. Only credits applied after the export was enabled will appear.
+
+Once credits start being consumed, they appear automatically — no configuration changes are needed.
 
 ---
 
