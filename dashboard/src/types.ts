@@ -1,9 +1,17 @@
+export interface CreditDetail {
+  type: string
+  name: string
+  amount: number
+}
+
 export interface CostResult {
   provider: string
   account: string
   totalCost: number
   currency: string
   lastUpdated: string
+  credits?: number
+  creditDetails?: CreditDetail[]
 }
 
 export interface BalanceError {
@@ -20,6 +28,7 @@ export interface ProviderSummary {
   currency: string | null
   accountCount: number
   errorCount: number
+  totalCredits?: number
 }
 
 export function isCostResult(item: BalanceItem): item is CostResult {
