@@ -7,12 +7,15 @@ import { loadGcpConfig } from "./providers/gcp";
 import type { ProviderConfig, CostResult } from "./providers/types";
 import type { BalanceItem } from "./schemas";
 import { balanceRoute, createProviderRoutes } from "./routes";
+import { join } from "path";
+
+const configDir = process.env.CONFIG_DIR ?? "config";
 
 const providerConfigs: Record<string, ProviderConfig> = {
-  oci: loadOciConfig(),
-  aws: loadAwsConfig(),
-  azure: loadAzureConfig(),
-  gcp: loadGcpConfig(),
+  oci: loadOciConfig(join(configDir, "oci.yaml")),
+  aws: loadAwsConfig(join(configDir, "aws.yaml")),
+  azure: loadAzureConfig(join(configDir, "azure.yaml")),
+  gcp: loadGcpConfig(join(configDir, "gcp.yaml")),
 };
 
 const VALID_PROVIDERS = Object.keys(providerConfigs);
@@ -55,6 +58,7 @@ app.openapi(balanceRoute, async (c) => {
 
 // /{provider} and /{provider}/{account}
 // when {account} is missing, use provider's default account
+
 async function resolveAccount(
   providerName: string,
   accountParam: string | undefined
