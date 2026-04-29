@@ -48,6 +48,9 @@ defineProps<{ items: BalanceItem[] }>()
         <div v-if="isCostResult(item)" class="text-right flex-shrink-0 ml-3">
           <div class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.totalCost.toFixed(2) }}</div>
           <div class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">{{ item.currency }}</div>
+          <div v-if="item.credits !== undefined" class="text-xs text-emerald-600 dark:text-emerald-400">
+            {{ Math.abs(item.credits).toFixed(2) }} credits
+          </div>
         </div>
         <div v-else class="font-semibold text-slate-400 dark:text-slate-500 text-xs flex-shrink-0 ml-3">
           Unavailable

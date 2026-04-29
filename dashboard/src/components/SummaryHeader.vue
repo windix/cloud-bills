@@ -39,6 +39,10 @@ function formatCost(summary: ProviderSummary): string {
           class="inline-block text-xs text-amber-500 dark:text-amber-400 mt-0.5"
         >⚠ {{ summary.errorCount }} failed</span>
 
+        <div v-if="summary.totalCredits !== undefined" class="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+          {{ Math.abs(summary.totalCredits).toFixed(2) }} credits
+        </div>
+
         <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
           {{ summary.accountCount }} acct{{ summary.accountCount !== 1 ? 's' : '' }}
         </div>
