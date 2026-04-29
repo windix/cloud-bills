@@ -100,6 +100,23 @@ curl http://localhost:3000/balance
 }
 ```
 
+GCP responses also include `credits` (total, negative value) and `creditDetails` (per-type breakdown):
+
+```json
+{
+  "provider": "gcp",
+  "account": "main",
+  "totalCost": 12.34,
+  "credits": -2.50,
+  "creditDetails": [
+    { "type": "PROMOTION", "name": "Free trial credit", "amount": -2.00 },
+    { "type": "FREE_TIER", "name": "Free tier", "amount": -0.50 }
+  ],
+  "currency": "USD",
+  "lastUpdated": "2026-04-22T10:00:00.000Z"
+}
+```
+
 ## Dashboard
 
 A web UI for viewing cost data is available in the [`dashboard/`](dashboard/) directory. It fetches `GET /balance` and displays per-provider summary cards and a sorted account list with light/dark theme support.

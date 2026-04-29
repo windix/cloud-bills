@@ -56,6 +56,9 @@ app.openapi(balanceRoute, async (c) => {
   return c.json(response, 200);
 });
 
+// /{provider} and /{provider}/{account}
+// when {account} is missing, use provider's default account
+
 async function resolveAccount(
   providerName: string,
   accountParam: string | undefined

@@ -1,5 +1,13 @@
 import { z } from "@hono/zod-openapi";
 
+const CreditDetailSchema = z
+  .object({
+    type: z.string().openapi({ example: "PROMOTION" }),
+    name: z.string().openapi({ example: "Free trial credit" }),
+    amount: z.number().openapi({ example: -10.0, description: "Credit amount applied (negative value)" }),
+  })
+  .openapi("CreditDetail");
+
 export const CostResultSchema = z
   .object({
     provider: z.string().openapi({ example: "aws" }),
@@ -9,6 +17,19 @@ export const CostResultSchema = z
     lastUpdated: z
       .string()
       .openapi({ example: "2026-04-22T00:00:00Z", description: "ISO 8601 datetime" }),
+    credits: z
+      .number()
+      .optional()
+      .openapi({
+        example: -15.0,
+        description: "Total credits applied (negative value). Currently GCP only.",
+      }),
+    creditDetails: z
+      .array(CreditDetailSchema)
+      .optional()
+      .openapi({
+        description: "Per-type credit breakdown, ordered by amount. Currently GCP only.",
+      }),
   })
   .openapi("CostResult");
 

@@ -10,11 +10,15 @@ export function computeProviderSummaries(items: BalanceItem[]): ProviderSummary[
       currency: null,
       accountCount: 0,
       errorCount: 0,
+      totalCredits: undefined,
     }
     entry.accountCount++
     if (isCostResult(item)) {
       entry.totalCost = (entry.totalCost ?? 0) + item.totalCost
       entry.currency = item.currency
+      if (item.credits !== undefined) {
+        entry.totalCredits = (entry.totalCredits ?? 0) + item.credits
+      }
     } else {
       entry.errorCount++
     }
