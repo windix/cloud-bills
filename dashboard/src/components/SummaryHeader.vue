@@ -40,7 +40,7 @@ function formatCost(summary: ProviderSummary): string {
         >⚠ {{ summary.errorCount }} failed</span>
 
         <div v-if="summary.totalCredits !== undefined" class="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
-          {{ summary.totalCredits.toFixed(2) }} credits
+          {{ Math.abs(summary.totalCredits).toFixed(2) }} credits
         </div>
 
         <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
