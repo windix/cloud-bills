@@ -75,3 +75,25 @@ jobs:
             ${{ steps.meta.outputs.image }}:${{ matrix.tag_prefix }}${{ steps.meta.outputs.short_sha }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  build-binary:
+    name: Build macOS Binary
+    runs-on: macos-latest
+    needs: [test-backend]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun build --compile src/index.api.ts --outfile cloud-bills-server
+      - name: Update tag
+        run: |
+          git tag -f server-latest
+          git push -f origin server-latest
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: server-latest
+          files: cloud-bills-server
+          prerelease: true
